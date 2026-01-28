@@ -1,0 +1,44 @@
+.TH ABRAFLEXI-MCP 1 "January 2026" "1.0.0" "AbraFlexi MCP Server Manual"
+.SH NAME
+abraflexi-mcp \- MCP server for AbraFlexi integration
+.SH SYNOPSIS
+.B abraflexi-mcp
+[\fIoptions\fR]
+.SH DESCRIPTION
+.B abraflexi-mcp
+is a Model Context Protocol (MCP) server that provides access to AbraFlexi accounting systems.
+It uses the FastMCP framework to expose tools for managing invoices, contacts, products, and more.
+.SH OPTIONS
+The application is primarily configured via environment variables.
+.TP
+.B ABRAFLEXI_URL
+URL of the AbraFlexi server (e.g., https://demo.flexibee.eu:5434).
+.TP
+.B ABRAFLEXI_COMPANY
+Company identifier in AbraFlexi.
+.TP
+.B ABRAFLEXI_LOGIN
+Username for authentication.
+.TP
+.B ABRAFLEXI_PASSWORD
+Password for authentication.
+.TP
+.B READ_ONLY
+Whether to enable read-only mode (default: true).
+.SH TOOLS
+The server provides various tools including:
+.IP \(bu 2
+\fBinvoice_issued_get\fR, \fBinvoice_issued_create\fR ...
+.IP \(bu 2
+\fBcontact_get\fR, \fBcontact_create\fR ...
+.IP \(bu 2
+\fBproduct_get\fR, \fBproduct_create\fR ...
+.SH FILES
+.TP
+.I .env
+Environment variable configuration file.
+.SH SEE ALSO
+.BR abraflexi-mcp-start (1),
+.BR abraflexi-mcp-test (1)
+.SH AUTHOR
+Vítězslav Dvořák <info@vitexsoftware.cz>

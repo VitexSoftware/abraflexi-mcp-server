@@ -49,14 +49,14 @@ def test_connection():
     print()
     
     try:
-        # Test connection with company evidence
-        print("1. Testing basic connection...")
+        # Test connection with company info (evidence=None)
+        print("1. Testing basic connection (company info)...")
         client = ReadOnly(None, {
             'url': url,
             'company': company,
             'user': user,
             'password': password,
-            'evidence': 'c'
+            'evidence': None
         })
         
         result = client.perform_request()
