@@ -4,8 +4,11 @@ Priority: optional
 Maintainer: Vítězslav Dvořák <info@vitexsoftware.cz>
 Build-Depends: debhelper (>= 10),
                dh-python,
+               pybuild-plugin-pyproject,
                python3-all,
-               python3-setuptools
+               python3-setuptools,
+               python3-build,
+               python3-installer
 Standards-Version: 4.5.0
 Homepage: https://github.com/VitexSoftware/abraflexi-mcp-server
 Vcs-Git: https://github.com/VitexSoftware/abraflexi-mcp-server.git
