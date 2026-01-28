@@ -1,0 +1,48 @@
+[project]
+name = "abraflexi-mcp-server"
+version = "1.0.0"
+description = "A comprehensive MCP server for AbraFlexi integration"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Vítězslav Dvořák", email = "info@vitexsoftware.cz"}
+]
+keywords = ["abraflexi", "flexibee", "mcp", "api", "server", "accounting", "erp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Accounting",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "fastmcp>=v2.12.4",
+    "python-abraflexi>=1.0.0",
+    "python-dotenv>=1.1.1"
+]
+requires-python = ">=3.10"
+
+[project.urls]
+Homepage = "https://github.com/VitexSoftware/abraflexi-mcp-server"
+Repository = "https://github.com/VitexSoftware/abraflexi-mcp-server"
+Issues = "https://github.com/VitexSoftware/abraflexi-mcp-server/issues"
+Documentation = "https://github.com/VitexSoftware/abraflexi-mcp-server#readme"
+
+[project.scripts]
+abraflexi-mcp = "src.abraflexi_mcp_server:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.setuptools.package-data]
+src = ["*.py"]

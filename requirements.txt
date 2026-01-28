@@ -1,0 +1,3 @@
+fastmcp>=v2.12.4
+-e /home/vitex/Projects/VitexSoftware/python-abraflexi
+python-dotenv>=1.1.1
