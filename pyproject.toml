@@ -3,7 +3,7 @@ name = "abraflexi-mcp-server"
 version = "1.0.0"
 description = "A comprehensive MCP server for AbraFlexi integration"
 readme = "README.md"
-license = "MIT"
+license = {text = "MIT"}
 authors = [
     {name = "Vítězslav Dvořák", email = "info@vitexsoftware.cz"}
 ]
