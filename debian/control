@@ -16,7 +16,8 @@ Depends: ${python3:Depends},
          ${misc:Depends},
          python3-abraflexi,
          python3-fastmcp,
-         python3-dotenv
+         python3-dotenv,
+         python3-typing-inspection
 Description: MCP server for AbraFlexi integration
  A comprehensive Model Context Protocol (MCP) server for AbraFlexi
  integration using FastMCP and python-abraflexi.

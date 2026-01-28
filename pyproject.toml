@@ -34,14 +34,14 @@ Issues = "https://github.com/VitexSoftware/abraflexi-mcp-server/issues"
 Documentation = "https://github.com/VitexSoftware/abraflexi-mcp-server#readme"
 
 [project.scripts]
-abraflexi-mcp = "src.abraflexi_mcp_server:main"
+abraflexi-mcp = "abraflexi_mcp_server.server:main"
 
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["src"]
+packages = ["abraflexi_mcp_server"]
 
 [tool.setuptools.package-data]
-src = ["*.py"]
+abraflexi_mcp_server = ["*.py"]
