@@ -1,0 +1,35 @@
+Source: abraflexi-mcp-server
+Section: python
+Priority: optional
+Maintainer: Vítězslav Dvořák <info@vitexsoftware.cz>
+Build-Depends: debhelper (>= 10),
+               dh-python,
+               python3-all,
+               python3-setuptools
+Standards-Version: 4.5.0
+Homepage: https://github.com/VitexSoftware/abraflexi-mcp-server
+Vcs-Git: https://github.com/VitexSoftware/abraflexi-mcp-server.git
+
+Package: abraflexi-mcp-server
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-abraflexi,
+         python3-fastmcp,
+         python3-dotenv
+Description: MCP server for AbraFlexi integration
+ A comprehensive Model Context Protocol (MCP) server for AbraFlexi
+ integration using FastMCP and python-abraflexi.
+ .
+ This server provides complete access to AbraFlexi REST API functionality
+ through MCP-compatible tools, enabling AI assistants and other tools to
+ interact with AbraFlexi accounting systems.
+ .
+ Features:
+  * Invoice management (issued and received)
+  * Contact/company management
+  * Product management
+  * Bank transaction management
+  * Generic evidence operations
+  * Read-only mode by default for security
+  * Support for STDIO and HTTP transports

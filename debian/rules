@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=abraflexi-mcp-server
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build *.egg-info
+
+override_dh_auto_install:
+	dh_auto_install
+	# Install scripts
+	install -d debian/abraflexi-mcp-server/usr/bin
+	install -m 755 scripts/start_server.py debian/abraflexi-mcp-server/usr/bin/abraflexi-mcp-start
+	install -m 755 scripts/test_server.py debian/abraflexi-mcp-server/usr/bin/abraflexi-mcp-test
+	# Install documentation
+	install -d debian/abraflexi-mcp-server/usr/share/doc/abraflexi-mcp-server
+	install -m 644 README.md debian/abraflexi-mcp-server/usr/share/doc/abraflexi-mcp-server/
+	install -m 644 MCP_SETUP.md debian/abraflexi-mcp-server/usr/share/doc/abraflexi-mcp-server/
+	# Install example configuration
+	install -d debian/abraflexi-mcp-server/usr/share/abraflexi-mcp-server
+	install -m 644 .env.example debian/abraflexi-mcp-server/usr/share/abraflexi-mcp-server/

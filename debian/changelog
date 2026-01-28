@@ -1,0 +1,9 @@
+abraflexi-mcp-server (1.0.0) UNRELEASED; urgency=medium
+
+  * Initial release
+  * MCP server for AbraFlexi integration
+  * Support for invoices, contacts, products, and bank transactions
+  * Read-only mode by default
+  * STDIO and HTTP transport support
+
+ -- Vítězslav Dvořák <info@vitexsoftware.cz>  Tue, 28 Jan 2026 02:37:00 +0100
