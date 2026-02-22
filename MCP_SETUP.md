@@ -7,7 +7,10 @@ This guide explains how to integrate the AbraFlexi MCP Server with MCP-compatibl
 ### Prerequisites
 
 - Claude Desktop application installed
-- AbraFlexi MCP Server installed and configured
+- AbraFlexi MCP Server installed:
+  ```bash
+  pip install abraflexi-mcp-server
+  ```
 
 ### Configuration Steps
 
@@ -22,6 +25,26 @@ This guide explains how to integrate the AbraFlexi MCP Server with MCP-compatibl
 
    Edit the configuration file and add the server to the `mcpServers` section:
 
+   **Option A: Using PyPI Installation (Recommended)**
+   ```json
+   {
+     "mcpServers": {
+       "abraflexi": {
+         "command": "abraflexi-mcp",
+         "args": [],
+         "env": {
+           "ABRAFLEXI_URL": "https://demo.flexibee.eu:5434",
+           "ABRAFLEXI_COMPANY": "demo_de",
+           "ABRAFLEXI_LOGIN": "winstrom",
+           "ABRAFLEXI_PASSWORD": "winstrom",
+           "READ_ONLY": "true"
+         }
+       }
+     }
+   }
+   ```
+
+   **Option B: Using Source Installation**
    ```json
    {
      "mcpServers": {
@@ -30,7 +53,7 @@ This guide explains how to integrate the AbraFlexi MCP Server with MCP-compatibl
          "args": [
            "run",
            "python",
-           "/home/vitex/Projects/VitexSoftware/abraflexi-mcp-server/src/abraflexi_mcp_server.py"
+           "/path/to/abraflexi-mcp-server/scripts/start_server.py"
          ],
          "env": {
            "ABRAFLEXI_URL": "https://demo.flexibee.eu:5434",
@@ -45,31 +68,29 @@ This guide explains how to integrate the AbraFlexi MCP Server with MCP-compatibl
    ```
 
    **Important Notes:**
-   - Replace the path with your actual installation path
    - Update the environment variables with your AbraFlexi credentials
    - Keep `READ_ONLY: "true"` for safety (change to `"false"` only if needed)
+   - For source installation, replace `/path/to/` with your actual installation path
 
 3. **Alternative: Using .env File**
 
-   If you prefer to use a `.env` file for configuration:
+   If you prefer to use a `.env` file for configuration (source installation only):
 
    ```json
    {
      "mcpServers": {
        "abraflexi": {
          "command": "uv",
-         "args": [
-           "run",
-           "python",
-           "/home/vitex/Projects/VitexSoftware/abraflexi-mcp-server/src/abraflexi_mcp_server.py"
-         ],
-         "cwd": "/home/vitex/Projects/VitexSoftware/abraflexi-mcp-server"
+         "args": ["run", "python", "scripts/start_server.py"],
+         "cwd": "/path/to/abraflexi-mcp-server"
        }
      }
    }
    ```
 
    Make sure your `.env` file is in the project directory with all required variables.
+   
+   **Note:** PyPI installation doesn't support `.env` files in Claude Desktop config - use environment variables instead.
 
 4. **Restart Claude Desktop**
 
@@ -98,7 +119,11 @@ For other MCP-compatible clients, you'll need to:
    
    Run the server as a subprocess:
    ```bash
-   uv run python /path/to/abraflexi-mcp-server/src/abraflexi_mcp_server.py
+   # PyPI installation
+   abraflexi-mcp
+   
+   # Or from source
+   uv run python /path/to/abraflexi-mcp-server/scripts/start_server.py
    ```
 
 2. **HTTP Transport**
@@ -110,7 +135,11 @@ For other MCP-compatible clients, you'll need to:
    export ABRAFLEXI_MCP_PORT=8000
    export AUTH_TYPE=no-auth
    
-   uv run python /path/to/abraflexi-mcp-server/src/abraflexi_mcp_server.py
+   # PyPI installation
+   abraflexi-mcp
+   
+   # Or from source
+   uv run python /path/to/abraflexi-mcp-server/scripts/start_server.py
    ```
 
    Then connect your MCP client to `http://127.0.0.1:8000`
@@ -234,8 +263,8 @@ You can configure multiple AbraFlexi servers:
 {
   "mcpServers": {
     "abraflexi-production": {
-      "command": "uv",
-      "args": ["run", "python", "/path/to/abraflexi-mcp-server/src/abraflexi_mcp_server.py"],
+      "command": "abraflexi-mcp",
+      "args": [],
       "env": {
         "ABRAFLEXI_URL": "https://production.example.com",
         "ABRAFLEXI_COMPANY": "main",
@@ -245,8 +274,8 @@ You can configure multiple AbraFlexi servers:
       }
     },
     "abraflexi-testing": {
-      "command": "uv",
-      "args": ["run", "python", "/path/to/abraflexi-mcp-server/src/abraflexi_mcp_server.py"],
+      "command": "abraflexi-mcp",
+      "args": [],
       "env": {
         "ABRAFLEXI_URL": "https://testing.example.com",
         "ABRAFLEXI_COMPANY": "test",

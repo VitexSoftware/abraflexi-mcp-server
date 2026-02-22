@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI version](https://badge.fury.io/py/abraflexi-mcp-server.svg)](https://badge.fury.io/py/abraflexi-mcp-server)
 
 A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration using FastMCP and python-abraflexi. This server provides complete access to AbraFlexi REST API functionality through MCP-compatible tools.
 
@@ -43,36 +44,46 @@ A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration us
 ### Prerequisites
 
 - Python 3.10 or higher
-- [uv](https://docs.astral.sh/uv/) package manager (recommended) or pip
 - Access to an AbraFlexi server with API enabled
 
-### Quick Start
+### Option 1: Install from PyPI (Recommended)
 
-1. **Clone or navigate to the repository:**
+```bash
+pip install abraflexi-mcp-server
+```
+
+Then run the server:
+```bash
+abraflexi-mcp
+```
+
+### Option 2: Install from Source
+
+1. **Clone the repository:**
    ```bash
-   cd /home/vitex/Projects/VitexSoftware/abraflexi-mcp-server
+   git clone https://github.com/VitexSoftware/abraflexi-mcp-server.git
+   cd abraflexi-mcp-server
    ```
 
-2. **Install dependencies:**
+2. **Install with uv (recommended):**
    ```bash
    uv sync
+   uv run python scripts/start_server.py
    ```
    
    Or with pip:
    ```bash
-   pip install -r requirements.txt
+   pip install -e .
+   abraflexi-mcp
    ```
 
-3. **Configure environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your AbraFlexi server details
-   ```
+### Configuration
 
-4. **Test the installation:**
-   ```bash
-   uv run python scripts/test_server.py
-   ```
+Create a `.env` file or set environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your AbraFlexi server details
+```
 
 ## Configuration
 
@@ -199,18 +210,101 @@ evidence_get(
 
 This server is designed to work with MCP-compatible clients like Claude Desktop. See [MCP_SETUP.md](MCP_SETUP.md) for detailed integration instructions.
 
+## OCI Container
+
+The server can be run as an OCI container (Docker/Podman) — no Python installation needed on the host.
+
+### Building the image
+
+```bash
+podman build -t abraflexi-mcp-server -f Containerfile .
+```
+
+### Running the container
+
+The image defaults to `streamable-http` transport on port **8000**.
+
+**With individual environment variables:**
+```bash
+podman run --rm -p 8000:8000 \
+  -e ABRAFLEXI_URL=https://demo.flexibee.eu:5434 \
+  -e ABRAFLEXI_COMPANY=demo_de \
+  -e ABRAFLEXI_LOGIN=winstrom \
+  -e ABRAFLEXI_PASSWORD=winstrom \
+  abraflexi-mcp-server
+```
+
+**With an env file:**
+```bash
+podman run --rm -p 8000:8000 --env-file .env abraflexi-mcp-server
+```
+
+### Container environment defaults
+
+| Variable | Default |
+|---|---|
+| `ABRAFLEXI_MCP_TRANSPORT` | `streamable-http` |
+| `ABRAFLEXI_MCP_HOST` | `0.0.0.0` |
+| `ABRAFLEXI_MCP_PORT` | `8000` |
+| `READ_ONLY` | `true` |
+
+All other [configuration variables](#configuration) can be passed as environment variables.
+
+## AppImage
+
+A self-contained, single-file Linux executable — no Python, pip, or any other dependency required on the host.
+
+### Building the AppImage
+
+```bash
+bash appimage/build-appimage.sh
+```
+
+The script downloads a portable CPython and `appimagetool` automatically. The resulting file is placed in `build/appimage/`:
+
+```
+build/appimage/AbraFlexi-MCP-Server-1.0.0-x86_64.AppImage
+```
+
+### Running the AppImage
+
+The AppImage automatically loads a `.env` file from the current working directory if one is present.
+
+**With a .env file (recommended):**
+```bash
+cp .env.example .env
+# edit .env with your credentials
+./AbraFlexi-MCP-Server-1.0.0-x86_64.AppImage
+```
+
+**With inline environment variables:**
+```bash
+ABRAFLEXI_URL=https://demo.flexibee.eu:5434 \
+ABRAFLEXI_COMPANY=demo_de \
+ABRAFLEXI_LOGIN=winstrom \
+ABRAFLEXI_PASSWORD=winstrom \
+./AbraFlexi-MCP-Server-1.0.0-x86_64.AppImage
+```
+
 ## Development
 
 ### Project Structure
 
 ```
 abraflexi-mcp-server/
-├── src/
+├── abraflexi_mcp_server/
 │   ├── __init__.py
-│   └── abraflexi_mcp_server.py    # Main server implementation
+│   └── server.py                  # Main server implementation
+├── appimage/
+│   ├── AppRun                     # AppImage entry point
+│   ├── abraflexi-mcp-server.desktop
+│   ├── abraflexi-mcp-server.svg
+│   └── build-appimage.sh          # AppImage build script
+├── debian/                        # Debian packaging
 ├── scripts/
 │   ├── start_server.py            # Startup script with validation
 │   └── test_server.py             # Test script
+├── Containerfile                  # OCI container build
 ├── pyproject.toml                 # Python project configuration
 ├── requirements.txt               # Dependencies
 ├── .env.example                   # Environment configuration template

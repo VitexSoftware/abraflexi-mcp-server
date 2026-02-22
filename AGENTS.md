@@ -9,7 +9,11 @@ AbraFlexi MCP Server — a Python MCP (Model Context Protocol) server that expos
 ## Build & Run Commands
 
 ```bash
-# Install dependencies (preferred)
+# Install from PyPI (production)
+pip install abraflexi-mcp-server
+abraflexi-mcp
+
+# Install dependencies for development
 uv sync
 
 # Run the MCP server (stdio transport, default)
@@ -20,6 +24,10 @@ uv run python -m abraflexi_mcp_server.server
 
 # Run tests (tool registration + AbraFlexi connection)
 uv run python scripts/test_server.py
+
+# Build PyPI package
+python3 -m build
+python3 -m twine upload dist/*
 
 # Build Debian package
 dpkg-buildpackage -us -uc -b
@@ -61,6 +69,10 @@ All config comes from environment variables (loaded from `.env` via `python-dote
 ### Debian packaging
 
 The `debian/` directory contains full Debian packaging. `debian/rules` uses pybuild and installs scripts to `/usr/bin/abraflexi-mcp-{start,test}`. CI builds via `debian/Jenkinsfile` across multiple Debian/Ubuntu distros and publishes to Aptly.
+
+### PyPI Distribution
+
+The package is published on PyPI at https://pypi.org/project/abraflexi-mcp-server/. Users can install with `pip install abraflexi-mcp-server` and run with the `abraflexi-mcp` command.
 
 ### Dependency note
 
