@@ -185,7 +185,7 @@ def invoice_issued_create(
     firma: str,
     datum_vystaveni: Optional[str] = None,
     polozky: Optional[List[Dict[str, Any]]] = None,
-    **kwargs
+    extra_fields: Optional[Dict[str, Any]] = None
 ) -> str:
     """Create a new issued invoice in AbraFlexi.
     
@@ -194,7 +194,7 @@ def invoice_issued_create(
         firma: Customer reference (e.g., 'code:CUSTOMER01')
         datum_vystaveni: Issue date (YYYY-MM-DD format)
         polozky: Invoice items/lines
-        **kwargs: Additional invoice fields
+        extra_fields: Additional invoice fields
         
     Returns:
         str: JSON formatted creation result
@@ -214,8 +214,9 @@ def invoice_issued_create(
         client.set_data_value("polozkyFaktury", polozky)
     
     # Set additional fields
-    for key, value in kwargs.items():
-        client.set_data_value(key, value)
+    if extra_fields:
+        for key, value in extra_fields.items():
+            client.set_data_value(key, value)
     
     result = client.insert_to_abraflexi()
     
@@ -230,14 +231,14 @@ def invoice_issued_create(
 def invoice_issued_update(
     id: Optional[str] = None,
     kod: Optional[str] = None,
-    **kwargs
+    data: Optional[Dict[str, Any]] = None
 ) -> str:
     """Update an existing issued invoice in AbraFlexi.
     
     Args:
         id: Invoice ID to update
         kod: Invoice code to update (alternative to id)
-        **kwargs: Fields to update
+        data: Fields to update
         
     Returns:
         str: JSON formatted update result
@@ -255,8 +256,9 @@ def invoice_issued_update(
         raise ValueError(f"Invoice not found: {identifier}")
     
     # Update fields
-    for key, value in kwargs.items():
-        client.set_data_value(key, value)
+    if data:
+        for key, value in data.items():
+            client.set_data_value(key, value)
     
     result = client.update()
     
@@ -336,7 +338,7 @@ def invoice_received_create(
     firma: str,
     datum_vystaveni: Optional[str] = None,
     polozky: Optional[List[Dict[str, Any]]] = None,
-    **kwargs
+    extra_fields: Optional[Dict[str, Any]] = None
 ) -> str:
     """Create a new received invoice in AbraFlexi.
     
@@ -345,7 +347,7 @@ def invoice_received_create(
         firma: Supplier reference (e.g., 'code:SUPPLIER01')
         datum_vystaveni: Issue date (YYYY-MM-DD format)
         polozky: Invoice items/lines
-        **kwargs: Additional invoice fields
+        extra_fields: Additional invoice fields
         
     Returns:
         str: JSON formatted creation result
@@ -365,8 +367,9 @@ def invoice_received_create(
         client.set_data_value("polozkyFaktury", polozky)
     
     # Set additional fields
-    for key, value in kwargs.items():
-        client.set_data_value(key, value)
+    if extra_fields:
+        for key, value in extra_fields.items():
+            client.set_data_value(key, value)
     
     result = client.insert_to_abraflexi()
     
@@ -426,7 +429,7 @@ def contact_create(
     nazev: str,
     email: Optional[str] = None,
     tel: Optional[str] = None,
-    **kwargs
+    extra_fields: Optional[Dict[str, Any]] = None
 ) -> str:
     """Create a new contact/company in AbraFlexi.
     
@@ -435,7 +438,7 @@ def contact_create(
         nazev: Contact name
         email: Email address
         tel: Phone number
-        **kwargs: Additional contact fields
+        extra_fields: Additional contact fields
         
     Returns:
         str: JSON formatted creation result
@@ -454,8 +457,9 @@ def contact_create(
         client.set_data_value("tel", tel)
     
     # Set additional fields
-    for key, value in kwargs.items():
-        client.set_data_value(key, value)
+    if extra_fields:
+        for key, value in extra_fields.items():
+            client.set_data_value(key, value)
     
     result = client.insert_to_abraflexi()
     
@@ -470,14 +474,14 @@ def contact_create(
 def contact_update(
     id: Optional[str] = None,
     kod: Optional[str] = None,
-    **kwargs
+    data: Optional[Dict[str, Any]] = None
 ) -> str:
     """Update an existing contact/company in AbraFlexi.
     
     Args:
         id: Contact ID to update
         kod: Contact code to update (alternative to id)
-        **kwargs: Fields to update
+        data: Fields to update
         
     Returns:
         str: JSON formatted update result
@@ -495,8 +499,9 @@ def contact_update(
         raise ValueError(f"Contact not found: {identifier}")
     
     # Update fields
-    for key, value in kwargs.items():
-        client.set_data_value(key, value)
+    if data:
+        for key, value in data.items():
+            client.set_data_value(key, value)
     
     result = client.update()
     
@@ -579,7 +584,7 @@ def product_create(
     kod: str,
     nazev: str,
     cena: Optional[float] = None,
-    **kwargs
+    extra_fields: Optional[Dict[str, Any]] = None
 ) -> str:
     """Create a new product in AbraFlexi.
     
@@ -587,7 +592,7 @@ def product_create(
         kod: Product code (unique identifier)
         nazev: Product name
         cena: Product price
-        **kwargs: Additional product fields
+        extra_fields: Additional product fields
         
     Returns:
         str: JSON formatted creation result
@@ -604,8 +609,9 @@ def product_create(
         client.set_data_value("cenaZakl", cena)
     
     # Set additional fields
-    for key, value in kwargs.items():
-        client.set_data_value(key, value)
+    if extra_fields:
+        for key, value in extra_fields.items():
+            client.set_data_value(key, value)
     
     result = client.insert_to_abraflexi()
     
@@ -620,14 +626,14 @@ def product_create(
 def product_update(
     id: Optional[str] = None,
     kod: Optional[str] = None,
-    **kwargs
+    data: Optional[Dict[str, Any]] = None
 ) -> str:
     """Update an existing product in AbraFlexi.
     
     Args:
         id: Product ID to update
         kod: Product code to update (alternative to id)
-        **kwargs: Fields to update
+        data: Fields to update
         
     Returns:
         str: JSON formatted update result
@@ -645,8 +651,9 @@ def product_update(
         raise ValueError(f"Product not found: {identifier}")
     
     # Update fields
-    for key, value in kwargs.items():
-        client.set_data_value(key, value)
+    if data:
+        for key, value in data.items():
+            client.set_data_value(key, value)
     
     result = client.update()
     
@@ -718,7 +725,7 @@ def bank_transaction_create(
     datum: str,
     castka: float,
     popis: Optional[str] = None,
-    **kwargs
+    extra_fields: Optional[Dict[str, Any]] = None
 ) -> str:
     """Create a new bank transaction in AbraFlexi.
     
@@ -727,7 +734,7 @@ def bank_transaction_create(
         datum: Transaction date (YYYY-MM-DD format)
         castka: Transaction amount
         popis: Transaction description
-        **kwargs: Additional transaction fields
+        extra_fields: Additional transaction fields
         
     Returns:
         str: JSON formatted creation result
@@ -745,8 +752,9 @@ def bank_transaction_create(
         client.set_data_value("popis", popis)
     
     # Set additional fields
-    for key, value in kwargs.items():
-        client.set_data_value(key, value)
+    if extra_fields:
+        for key, value in extra_fields.items():
+            client.set_data_value(key, value)
     
     result = client.insert_to_abraflexi()
     

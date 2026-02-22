@@ -2,7 +2,8 @@
 """
 Test script for AbraFlexi MCP Server
 
-This script tests the connection to AbraFlexi and validates basic functionality.
+This script tests MCP tool registration, parameter signatures,
+and the connection to AbraFlexi, validating basic functionality.
 
 Author: Vítězslav Dvořák
 License: MIT
@@ -10,6 +11,7 @@ License: MIT
 
 import os
 import sys
+import inspect
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -187,10 +189,94 @@ def test_write_operations():
         return False
 
 
+def test_mcp_tools():
+    """Test that all MCP tools register correctly and have valid signatures."""
+    print("=" * 60)
+    print("AbraFlexi MCP Server - Tool Registration Test")
+    print("=" * 60)
+    print()
+
+    try:
+        from abraflexi_mcp_server.server import mcp
+
+        tools = mcp._tool_manager._tools
+        print(f"   ✓ Server module imported successfully")
+        print(f"   ✓ {len(tools)} tools registered")
+        print()
+
+        expected_tools = [
+            "invoice_issued_get", "invoice_issued_create",
+            "invoice_issued_update", "invoice_issued_delete",
+            "invoice_received_get", "invoice_received_create",
+            "contact_get", "contact_create",
+            "contact_update", "contact_delete",
+            "product_get", "product_create",
+            "product_update", "product_delete",
+            "bank_transaction_get", "bank_transaction_create",
+            "evidence_get", "evidence_create",
+            "evidence_update", "evidence_delete",
+            "evidence_list",
+        ]
+
+        missing = [t for t in expected_tools if t not in tools]
+        if missing:
+            print(f"   ❌ Missing tools: {', '.join(missing)}")
+            return False
+        print(f"   ✓ All {len(expected_tools)} expected tools present")
+
+        # Verify no **kwargs in any tool function (FastMCP forbids it)
+        print()
+        print("Checking tool signatures (no **kwargs allowed)...")
+        for name, tool in tools.items():
+            fn = tool.fn
+            sig = inspect.signature(fn)
+            for param in sig.parameters.values():
+                if param.kind == inspect.Parameter.VAR_KEYWORD:
+                    print(f"   ❌ {name} still has **kwargs")
+                    return False
+            print(f"   ✓ {name}")
+
+        # Verify create/update tools accept extra_fields or data dict
+        print()
+        print("Checking extra_fields / data parameter on write tools...")
+        create_tools = {
+            "invoice_issued_create": "extra_fields",
+            "invoice_received_create": "extra_fields",
+            "contact_create": "extra_fields",
+            "product_create": "extra_fields",
+            "bank_transaction_create": "extra_fields",
+        }
+        update_tools = {
+            "invoice_issued_update": "data",
+            "contact_update": "data",
+            "product_update": "data",
+            "evidence_update": "data",
+        }
+        for name, param_name in {**create_tools, **update_tools}.items():
+            fn = tools[name].fn
+            sig = inspect.signature(fn)
+            if param_name not in sig.parameters:
+                print(f"   ❌ {name} missing '{param_name}' parameter")
+                return False
+            print(f"   ✓ {name} has '{param_name}'")
+
+        print()
+        print("✅ All tool registration tests passed!")
+        return True
+
+    except Exception as e:
+        print(f"\n❌ Tool test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 if __name__ == "__main__":
-    success = test_connection()
-    
-    if success:
+    tool_success = test_mcp_tools()
+    print()
+    conn_success = test_connection()
+
+    if conn_success:
         test_write_operations()
-    
-    sys.exit(0 if success else 1)
+
+    sys.exit(0 if (tool_success and conn_success) else 1)

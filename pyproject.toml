@@ -21,7 +21,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "fastmcp>=v2.12.4",
+    "fastmcp>=2.12.4",
     "python-abraflexi>=1.0.0",
     "python-dotenv>=1.1.1"
 ]
