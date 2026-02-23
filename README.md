@@ -398,3 +398,5 @@ This project is licensed under the MIT License.
 ---
 
 **Made with ❤️ for the AbraFlexi and MCP communities**
+
+<!-- mcp-name: io.github.Vitexus/abraflexi -->
