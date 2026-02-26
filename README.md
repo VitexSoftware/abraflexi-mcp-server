@@ -77,6 +77,16 @@ abraflexi-mcp
    abraflexi-mcp
    ```
 
+## Cloud Deployment
+
+A testing deployment is available at:
+
+**🌐 https://abraflexi.fastmcp.app/mcp**
+
+This cloud-hosted instance allows you to test and use the AbraFlexi MCP server without local installation. Configure your MCP client to connect to this endpoint with HTTP transport.
+
+**Note:** This is a testing deployment. For production use, we recommend self-hosting using one of the installation methods above.
+
 ### Configuration
 
 Create a `.env` file or set environment variables:

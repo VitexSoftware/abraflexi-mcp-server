@@ -92,6 +92,20 @@ This guide explains how to integrate the AbraFlexi MCP Server with MCP-compatibl
    
    **Note:** PyPI installation doesn't support `.env` files in Claude Desktop config - use environment variables instead.
 
+   **Option C: Using Cloud Deployment (Testing)**
+   ```json
+   {
+     "mcpServers": {
+       "abraflexi": {
+         "url": "https://abraflexi.fastmcp.app/mcp",
+         "transport": "http"
+       }
+     }
+   }
+   ```
+   
+   This connects to the hosted testing deployment. No local installation required, but note this is a testing instance and should not be used for production data.
+
 4. **Restart Claude Desktop**
 
    Close and reopen Claude Desktop for the changes to take effect.
@@ -143,6 +157,17 @@ For other MCP-compatible clients, you'll need to:
    ```
 
    Then connect your MCP client to `http://127.0.0.1:8000`
+
+3. **Cloud Deployment (Testing)**
+
+   Connect your MCP client to the hosted testing deployment:
+   ```
+   https://abraflexi.fastmcp.app/mcp
+   ```
+   
+   No local installation or configuration required. This is suitable for testing and evaluation purposes.
+   
+   **Important:** The cloud deployment is a testing instance. For production use with sensitive data, please self-host using one of the installation methods above.
 
 ## Available Tools
 
