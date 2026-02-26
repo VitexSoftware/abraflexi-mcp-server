@@ -13,8 +13,8 @@ License: MIT
 import os
 import sys
 import json
+import asyncio
 import inspect
-import importlib.metadata
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -29,25 +29,8 @@ from python_abraflexi import ReadOnly, ReadWrite
 
 
 def _get_tools(mcp_instance):
-    """Get tools dict from FastMCP, compatible with multiple versions."""
-    # FastMCP >= 2.x (newer)
-    if hasattr(mcp_instance, '_tool_manager'):
-        manager = mcp_instance._tool_manager
-        if hasattr(manager, '_tools'):
-            return manager._tools
-    # FastMCP 1.x / mcp-sdk re-export
-    if hasattr(mcp_instance, '_tools'):
-        return mcp_instance._tools
-    # Fallback: gather decorated functions from the server module
-    import abraflexi_mcp_server.server as _srv
-    tools = {}
-    for name in dir(_srv):
-        obj = getattr(_srv, name)
-        if hasattr(obj, 'fn'):
-            tools[name] = obj
-    if tools:
-        return tools
-    raise RuntimeError("Cannot locate tools on FastMCP instance")
+    """Get tools dict from FastMCP using the public async API."""
+    return asyncio.run(mcp_instance.get_tools())
 
 
 def test_connection():
