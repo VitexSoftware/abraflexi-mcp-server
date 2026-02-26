@@ -45,3 +45,9 @@ packages = ["abraflexi_mcp_server"]
 
 [tool.setuptools.package-data]
 abraflexi_mcp_server = ["*.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["scripts"]
+filterwarnings = [
+    "ignore::pytest.PytestReturnNotNoneWarning",
+]

@@ -28,6 +28,28 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from python_abraflexi import ReadOnly, ReadWrite
 
 
+def _get_tools(mcp_instance):
+    """Get tools dict from FastMCP, compatible with multiple versions."""
+    # FastMCP >= 2.x (newer)
+    if hasattr(mcp_instance, '_tool_manager'):
+        manager = mcp_instance._tool_manager
+        if hasattr(manager, '_tools'):
+            return manager._tools
+    # FastMCP 1.x / mcp-sdk re-export
+    if hasattr(mcp_instance, '_tools'):
+        return mcp_instance._tools
+    # Fallback: gather decorated functions from the server module
+    import abraflexi_mcp_server.server as _srv
+    tools = {}
+    for name in dir(_srv):
+        obj = getattr(_srv, name)
+        if hasattr(obj, 'fn'):
+            tools[name] = obj
+    if tools:
+        return tools
+    raise RuntimeError("Cannot locate tools on FastMCP instance")
+
+
 def test_connection():
     """Test connection to AbraFlexi server."""
     print("=" * 60)
@@ -297,7 +319,8 @@ def test_helpers():
             os.environ.pop("READ_ONLY", None)
 
     # evidence_list returns valid JSON with expected keys
-    evidence_list_fn = mcp._tool_manager._tools["evidence_list"].fn
+    tools = _get_tools(mcp)
+    evidence_list_fn = tools["evidence_list"].fn
     el_result = json.loads(evidence_list_fn())
     assert isinstance(el_result, list) and len(el_result) > 0
     assert all("name" in e and "description" in e for e in el_result)
@@ -368,7 +391,7 @@ def test_mcp_tools():
     try:
         from abraflexi_mcp_server.server import mcp
 
-        tools = mcp._tool_manager._tools
+        tools = _get_tools(mcp)
         print(f"   \u2713 Server module imported successfully")
         print(f"   \u2713 {len(tools)} tools registered")
         print()
