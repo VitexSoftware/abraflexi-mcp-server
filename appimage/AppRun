@@ -1,0 +1,18 @@
+#!/bin/bash
+set -euo pipefail
+
+SELF="$(readlink -f "$0")"
+HERE="${SELF%/*}"
+
+export PATH="${HERE}/usr/bin:${PATH}"
+export PYTHONHOME="${HERE}/usr"
+export PYTHONDONTWRITEBYTECODE=1
+
+# Load .env from CWD if present
+if [ -f "${PWD}/.env" ]; then
+    set -a
+    . "${PWD}/.env"
+    set +a
+fi
+
+exec "${HERE}/usr/bin/python3" -m abraflexi_mcp_server.server "$@"

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AbraFlexi MCP Server
+Comment=MCP server for AbraFlexi integration
+Exec=abraflexi-mcp
+Icon=abraflexi-mcp-server
+Categories=Office;Finance;
+Terminal=true

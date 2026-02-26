@@ -76,7 +76,7 @@ The package is published on PyPI at https://pypi.org/project/abraflexi-mcp-serve
 
 ### Dependency note
 
-`requirements.txt` references `python-abraflexi` as an editable local install (`-e /home/vitex/Projects/VitexSoftware/python-abraflexi`). For production or CI, use `uv sync` which resolves from pyproject.toml (`python-abraflexi>=1.0.0` from PyPI).
+`requirements.txt` lists the same dependencies as `pyproject.toml`. For development use `uv sync` which resolves from pyproject.toml (`python-abraflexi>=1.0.0` from PyPI).
 
 ## AbraFlexi domain concepts
 

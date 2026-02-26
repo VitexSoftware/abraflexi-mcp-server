@@ -57,7 +57,19 @@ Then run the server:
 abraflexi-mcp
 ```
 
-### Option 2: Install from Source
+### Option 2: AppImage (Linux)
+
+Download the self-contained AppImage from the
+[latest release](https://github.com/VitexSoftware/abraflexi-mcp-server/releases/latest):
+
+```bash
+chmod +x AbraFlexi-MCP-Server-*-x86_64.AppImage
+./AbraFlexi-MCP-Server-*-x86_64.AppImage
+```
+
+No Python or pip required. See [AppImage](#appimage) section for details.
+
+### Option 3: Install from Source
 
 1. **Clone the repository:**
    ```bash
@@ -137,7 +149,7 @@ uv run python scripts/start_server.py
 
 **Direct execution:**
 ```bash
-uv run python src/abraflexi_mcp_server.py
+uv run python -m abraflexi_mcp_server.server
 ```
 
 ### Transport Options
@@ -273,7 +285,7 @@ bash appimage/build-appimage.sh
 The script downloads a portable CPython and `appimagetool` automatically. The resulting file is placed in `build/appimage/`:
 
 ```
-build/appimage/AbraFlexi-MCP-Server-1.0.0-x86_64.AppImage
+build/appimage/AbraFlexi-MCP-Server-<version>-x86_64.AppImage
 ```
 
 ### Running the AppImage
@@ -284,7 +296,7 @@ The AppImage automatically loads a `.env` file from the current working director
 ```bash
 cp .env.example .env
 # edit .env with your credentials
-./AbraFlexi-MCP-Server-1.0.0-x86_64.AppImage
+./AbraFlexi-MCP-Server-*-x86_64.AppImage
 ```
 
 **With inline environment variables:**
@@ -293,7 +305,7 @@ ABRAFLEXI_URL=https://demo.flexibee.eu:5434 \
 ABRAFLEXI_COMPANY=demo_de \
 ABRAFLEXI_LOGIN=winstrom \
 ABRAFLEXI_PASSWORD=winstrom \
-./AbraFlexi-MCP-Server-1.0.0-x86_64.AppImage
+./AbraFlexi-MCP-Server-*-x86_64.AppImage
 ```
 
 ## Development
@@ -315,7 +327,9 @@ abraflexi-mcp-server/
 │   ├── start_server.py            # Startup script with validation
 │   └── test_server.py             # Test script
 ├── Containerfile                  # OCI container build
+├── server.json                    # MCP Registry manifest
 ├── pyproject.toml                 # Python project configuration
+├── setup.py                       # Legacy setuptools configuration
 ├── requirements.txt               # Dependencies
 ├── .env.example                   # Environment configuration template
 ├── .env                           # Your configuration (not in git)

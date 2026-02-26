@@ -63,3 +63,10 @@ debian/abraflexi-mcp-server.postinst.debhelper
 .gitignore
 debian/debhelper-build-stamp
 debian/abraflexi-mcp-server.prerm.debhelper
+
+# AppImage
+build/appimage/
+*.AppImage
+
+# MCP Registry tokens
+.mcpregistry_*
