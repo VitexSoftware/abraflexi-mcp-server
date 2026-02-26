@@ -411,7 +411,7 @@ This project is licensed under the MIT License.
 
 - 📖 [Documentation](README.md)
 - 🐛 [Issue Tracker](https://github.com/VitexSoftware/abraflexi-mcp-server/issues)
-- 💬 [AbraFlexi API Documentation](https://www.abraflexi.eu/api/dokumentace/)
+- 💬 [AbraFlexi API Documentation](https://podpora.flexibee.eu/cs/?q=API)
 
 ## Author
 
