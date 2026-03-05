@@ -1,0 +1,45 @@
+.TH ABRAFLEXI-MCP-TEST 1 "February 2026" "1.0.1" "AbraFlexi MCP Server Manual"
+.SH NAME
+abraflexi-mcp-test \- test MCP tool registration and AbraFlexi connectivity
+.SH SYNOPSIS
+.B abraflexi-mcp-test
+.SH DESCRIPTION
+.B abraflexi-mcp-test
+runs a suite of checks against the AbraFlexi MCP server:
+.IP \(bu 2
+Verifies that all expected MCP tools are registered with valid signatures.
+.IP \(bu 2
+Tests connectivity to the configured AbraFlexi instance.
+.IP \(bu 2
+Optionally tests write operations (when read-only mode is disabled).
+.PP
+This is useful for validating the installation and configuration before
+putting the server into production.
+.SH ENVIRONMENT
+.TP
+.B ABRAFLEXI_URL
+URL of the AbraFlexi server (required).
+.TP
+.B ABRAFLEXI_COMPANY
+Company identifier in AbraFlexi (required).
+.TP
+.B ABRAFLEXI_LOGIN
+Username for authentication (required).
+.TP
+.B ABRAFLEXI_PASSWORD
+Password for authentication (required).
+.TP
+.B READ_ONLY
+When set to \fBtrue\fR (default), write-operation tests are skipped.
+.SH EXIT STATUS
+.TP
+.B 0
+All tests passed.
+.TP
+.B 1
+One or more tests failed.
+.SH SEE ALSO
+.BR abraflexi-mcp (1),
+.BR abraflexi-mcp-start (1)
+.SH AUTHOR
+Vítězslav Dvořák <info@vitexsoftware.cz>

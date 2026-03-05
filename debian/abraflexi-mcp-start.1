@@ -1,0 +1,59 @@
+.TH ABRAFLEXI-MCP-START 1 "February 2026" "1.0.1" "AbraFlexi MCP Server Manual"
+.SH NAME
+abraflexi-mcp-start \- validate environment and start the AbraFlexi MCP server
+.SH SYNOPSIS
+.B abraflexi-mcp-start
+.SH DESCRIPTION
+.B abraflexi-mcp-start
+is a startup wrapper for the AbraFlexi MCP server.
+It validates that all required environment variables are set, prints the
+current configuration summary, and then launches the MCP server.
+.PP
+The script checks for the following before starting the server:
+.IP \(bu 2
+Required variables \fBABRAFLEXI_URL\fR and \fBABRAFLEXI_COMPANY\fR.
+.IP \(bu 2
+Authentication configuration (session ID or username/password).
+.IP \(bu 2
+Transport mode validity (\fBstdio\fR or \fBstreamable-http\fR).
+.SH ENVIRONMENT
+.TP
+.B ABRAFLEXI_URL
+URL of the AbraFlexi server (required).
+.TP
+.B ABRAFLEXI_COMPANY
+Company identifier in AbraFlexi (required).
+.TP
+.B ABRAFLEXI_LOGIN
+Username for authentication.
+.TP
+.B ABRAFLEXI_PASSWORD
+Password for authentication.
+.TP
+.B ABRAFLEXI_AUTHSESSID
+Session ID for authentication (alternative to login/password).
+.TP
+.B ABRAFLEXI_MCP_TRANSPORT
+Transport mode: \fBstdio\fR (default) or \fBstreamable-http\fR.
+.TP
+.B READ_ONLY
+Enable read-only mode (default: true).
+.TP
+.B DEBUG
+Enable debug logging.
+.SH FILES
+.TP
+.I /usr/share/abraflexi-mcp-server/.env.example
+Example environment variable configuration file.
+.SH EXIT STATUS
+.TP
+.B 0
+Server stopped normally.
+.TP
+.B 1
+Environment validation failed or startup error.
+.SH SEE ALSO
+.BR abraflexi-mcp (1),
+.BR abraflexi-mcp-test (1)
+.SH AUTHOR
+Vítězslav Dvořák <info@vitexsoftware.cz>

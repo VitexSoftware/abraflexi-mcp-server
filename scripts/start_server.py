@@ -12,15 +12,11 @@ License: MIT
 import os
 import sys
 import logging
-from pathlib import Path
 from typing import List
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
-
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def setup_logging() -> None:
