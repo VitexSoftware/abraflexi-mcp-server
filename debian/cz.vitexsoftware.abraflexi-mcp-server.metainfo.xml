@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="console-application">
+  <id>cz.vitexsoftware.abraflexi-mcp-server</id>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>MIT</project_license>
+  <name>AbraFlexi MCP Server</name>
+  <summary>Model Context Protocol server for AbraFlexi integration</summary>
+  <description>
+    <p>
+      A comprehensive MCP server providing complete access to AbraFlexi REST
+      API functionality through the Model Context Protocol, enabling AI
+      assistants and other tools to interact with AbraFlexi accounting
+      systems.
+    </p>
+    <ul>
+      <li>Invoice management (issued and received)</li>
+      <li>Contact/company management</li>
+      <li>Product management</li>
+      <li>Bank transaction management</li>
+      <li>Generic evidence operations</li>
+      <li>Read-only mode by default for security</li>
+      <li>Support for STDIO and HTTP transports</li>
+    </ul>
+  </description>
+  <icon type="stock">abraflexi-mcp-server</icon>
+  <categories>
+    <category>Office</category>
+    <category>Finance</category>
+  </categories>
+  <provides>
+    <binary>abraflexi-mcp</binary>
+  </provides>
+  <url type="homepage">https://github.com/VitexSoftware/abraflexi-mcp-server</url>
+  <url type="bugtracker">https://github.com/VitexSoftware/abraflexi-mcp-server/issues</url>
+  <url type="vcs-browser">https://github.com/VitexSoftware/abraflexi-mcp-server</url>
+  <developer id="cz.vitexsoftware">
+    <name>Vítězslav Dvořák</name>
+  </developer>
+  <releases>
+    <release version="1.0.1" date="2026-02-26">
+      <description>
+        <p>Initial release with full AbraFlexi REST API tool coverage (invoices, contacts, products, bank transactions, generic evidence) over STDIO and HTTP transports.</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

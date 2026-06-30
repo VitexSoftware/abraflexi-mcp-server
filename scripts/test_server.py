@@ -338,6 +338,9 @@ def test_packaging_artifacts():
         "appimage/build-appimage.sh",
         "appimage/abraflexi-mcp-server.desktop",
         "appimage/abraflexi-mcp-server.svg",
+        "debian/abraflexi-mcp-server.install",
+        "debian/abraflexi-mcp-server.svg",
+        "debian/cz.vitexsoftware.abraflexi-mcp-server.metainfo.xml",
     ]
 
     for rel in required_files:
@@ -356,6 +359,26 @@ def test_packaging_artifacts():
             ok = False
         else:
             print(f"   \u2713 server.json has '{key}'")
+
+    # Validate AppStream metainfo, if appstreamcli is available
+    import shutil
+    import subprocess
+
+    metainfo_path = PROJECT_ROOT / "debian/cz.vitexsoftware.abraflexi-mcp-server.metainfo.xml"
+    if shutil.which("appstreamcli"):
+        result = subprocess.run(
+            ["appstreamcli", "validate", "--pedantic", "--no-net", str(metainfo_path)],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            print("   \u2713 AppStream metainfo passes appstreamcli validate --pedantic")
+        else:
+            print("   \u274c AppStream metainfo failed validation:")
+            print(result.stdout + result.stderr)
+            ok = False
+    else:
+        print("   \u26a0 appstreamcli not installed, skipping metainfo validation")
 
     print()
     if ok:

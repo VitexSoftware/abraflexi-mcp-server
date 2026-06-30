@@ -10,6 +10,7 @@ Author: Vítězslav Dvořák
 License: MIT
 """
 
+import argparse
 import os
 import json
 import logging
@@ -930,6 +931,23 @@ def evidence_list() -> str:
 
 def main():
     """Main entry point for the MCP server."""
+    parser = argparse.ArgumentParser(
+        prog="abraflexi-mcp",
+        description=(
+            "MCP server for AbraFlexi integration (invoices, contacts, "
+            "products, bank transactions, generic evidence)."
+        ),
+        epilog=(
+            "Configuration is read from environment variables or a .env "
+            "file (see .env.example):\n"
+            "  ABRAFLEXI_URL, ABRAFLEXI_COMPANY, ABRAFLEXI_LOGIN, ABRAFLEXI_PASSWORD\n"
+            "  READ_ONLY, ABRAFLEXI_MCP_TRANSPORT (stdio|streamable-http),\n"
+            "  ABRAFLEXI_MCP_HOST, ABRAFLEXI_MCP_PORT, ABRAFLEXI_MCP_STATELESS_HTTP"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.parse_args()
+
     # Get transport configuration
     transport = os.getenv("ABRAFLEXI_MCP_TRANSPORT", "stdio").lower()
     

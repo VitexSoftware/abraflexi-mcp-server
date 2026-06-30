@@ -1,3 +1,9 @@
+abraflexi-mcp-server (1.0.2) unstable; urgency=medium
+
+  * Add AppStream metainfo and stock icon for desktop integration.
+
+ -- Vítězslav Dvořák <info@vitexsoftware.cz>  Tue, 30 Jun 2026 22:03:27 +0200
+
 abraflexi-mcp-server (1.0.1) unstable; urgency=medium
 
   * Initial release

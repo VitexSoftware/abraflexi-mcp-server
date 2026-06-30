@@ -1,5 +1,7 @@
 # AbraFlexi MCP Server
 
+<img src="debian/abraflexi-mcp-server.svg" alt="AbraFlexi MCP Server icon" width="96" height="96">
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://badge.fury.io/py/abraflexi-mcp-server.svg)](https://badge.fury.io/py/abraflexi-mcp-server)
@@ -150,6 +152,11 @@ uv run python scripts/start_server.py
 **Direct execution:**
 ```bash
 uv run python -m abraflexi_mcp_server.server
+```
+
+**CLI help:**
+```bash
+abraflexi-mcp --help
 ```
 
 ### Transport Options
@@ -323,6 +330,9 @@ abraflexi-mcp-server/
 │   ├── abraflexi-mcp-server.svg
 │   └── build-appimage.sh          # AppImage build script
 ├── debian/                        # Debian packaging
+│   ├── abraflexi-mcp-server.svg   # AppStream stock icon
+│   ├── abraflexi-mcp-server.install
+│   └── cz.vitexsoftware.abraflexi-mcp-server.metainfo.xml
 ├── scripts/
 │   ├── start_server.py            # Startup script with validation
 │   └── test_server.py             # Test script
