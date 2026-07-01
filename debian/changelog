@@ -1,3 +1,10 @@
+abraflexi-mcp-server (1.1.0) unstable; urgency=medium
+
+  * Add evidence_attach_file tool, using the new python-abraflexi>=1.1.0
+    attachment upload support
+
+ -- vitex <info@vitexsoftware.cz>  Wed, 01 Jul 2026 23:59:58 +0200
+
 abraflexi-mcp-server (1.0.2) unstable; urgency=medium
 
   * Add AppStream metainfo and stock icon for desktop integration.

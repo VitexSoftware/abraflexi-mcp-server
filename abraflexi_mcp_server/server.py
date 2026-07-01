@@ -898,8 +898,45 @@ def evidence_delete(
         raise ValueError(f"Record not found in {evidence}: {identifier}")
     
     result = client.delete()
-    
+
     return format_response({"success": result})
+
+
+@mcp.tool()
+def evidence_attach_file(
+    evidence: str,
+    filepath: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None
+) -> str:
+    """Attach a local file to a record in any AbraFlexi evidence.
+
+    Args:
+        evidence: Evidence name (e.g., 'cenik', 'adresar')
+        filepath: Path to the local file to attach (read from this server's filesystem)
+        id: Record ID to attach the file to
+        kod: Record code to attach the file to (alternative to id)
+
+    Returns:
+        str: JSON formatted result with the created attachment's ID
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    attachment_id = client.add_attachment_from_file(filepath)
+
+    return format_response({
+        "success": attachment_id is not None,
+        "attachment_id": attachment_id
+    })
 
 
 @mcp.tool()
