@@ -1,3 +1,20 @@
+abraflexi-mcp-server (1.2.0) unstable; urgency=medium
+
+  * Expose python-abraflexi 1.1.x feature set: locking/actions, mass
+    update, batch insert/update, extended attachments
+    (list/get/download/thumbnail/delete), report export, QR codes, user
+    queries, evidence metadata (properties/reports/relations/sum),
+    record change history, labels, company-wide Changes API,
+    FakturaVydana business logic (payment matching, cash payment,
+    advance/ZDD deduction, ZDD linking, email resolution), and Adresar
+    contact lookups (notification email, phone numbers, bank accounts).
+    Also adds pagination/sorting to evidence_get and remove_external_ids
+    to evidence_update. Requires python-abraflexi>=1.1.2 for the
+    response-unwrapping and filter-condition fixes those new tools
+    depend on.
+
+ -- vitex <info@vitexsoftware.cz>  Thu, 02 Jul 2026 12:48:20 +0200
+
 abraflexi-mcp-server (1.1.0) unstable; urgency=medium
 
   * Add evidence_attach_file tool, using the new python-abraflexi>=1.1.0

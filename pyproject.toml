@@ -1,6 +1,6 @@
 [project]
 name = "abraflexi-mcp-server"
-version = "1.1.0"
+version = "1.2.0"
 description = "A comprehensive MCP server for AbraFlexi integration"
 readme = "README.md"
 license = "MIT"
@@ -22,7 +22,7 @@ classifiers = [
 ]
 dependencies = [
     "fastmcp>=2.12.4",
-    "python-abraflexi>=1.0.0",
+    "python-abraflexi>=1.1.2",
     "python-dotenv>=1.1.1"
 ]
 requires-python = ">=3.10"

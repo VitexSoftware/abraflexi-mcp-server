@@ -16,7 +16,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional, Union
 from fastmcp import FastMCP
-from python_abraflexi import ReadOnly, ReadWrite
+from python_abraflexi import ReadOnly, ReadWrite, Changes, Adresar, FakturaVydana
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -106,6 +106,32 @@ def get_readwrite_client(evidence: str) -> ReadWrite:
     config = get_abraflexi_config()
     options = {**config, "evidence": evidence}
     return ReadWrite(None, options)
+
+
+def get_faktura_vydana_client(init: Optional[Union[int, str]] = None) -> FakturaVydana:
+    """Create a FakturaVydana client, optionally loaded with a specific record.
+
+    Args:
+        init: Record ID, code, or None for an unloaded client
+
+    Returns:
+        FakturaVydana: Configured client
+    """
+    config = get_abraflexi_config()
+    return FakturaVydana(init, config)
+
+
+def get_adresar_client(init: Optional[Union[int, str]] = None) -> Adresar:
+    """Create an Adresar client, optionally loaded with a specific record.
+
+    Args:
+        init: Record ID, code, or None for an unloaded client
+
+    Returns:
+        Adresar: Configured client
+    """
+    config = get_abraflexi_config()
+    return Adresar(init, config)
 
 
 def is_read_only() -> bool:
@@ -772,32 +798,50 @@ def evidence_get(
     ids: Optional[List[str]] = None,
     filter_expr: Optional[str] = None,
     limit: Optional[int] = None,
-    detail: str = "summary"
+    detail: str = "summary",
+    start: Optional[int] = None,
+    order: Optional[str] = None,
+    order_direction: str = "A",
+    add_row_count: bool = False,
+    relations: Optional[List[str]] = None
 ) -> str:
     """Get records from any AbraFlexi evidence.
-    
+
     Args:
         evidence: Evidence name (e.g., 'faktura-vydana', 'adresar', 'cenik')
         ids: List of record IDs to retrieve
         filter_expr: AbraFlexi filter expression
         limit: Maximum number of results
         detail: Detail level (summary, id, full, custom:field1,field2)
-        
+        start: Zero-based offset of the first record to return (pagination)
+        order: Column name to sort by
+        order_direction: "A" for ascending (default) or "D" for descending
+        add_row_count: Include the total number of matching records in the response
+        relations: Sub-evidences to include in the response (e.g. ['polozkyFaktury'])
+
     Returns:
         str: JSON formatted list of records
     """
     client = get_readonly_client(evidence)
-    
+
     # Build filter
     if ids:
         client.filter = f"id in ({','.join(ids)})"
     elif filter_expr:
         client.filter = filter_expr
-    
+
     client.default_url_params["detail"] = detail
     if limit:
         client.default_url_params["limit"] = limit
-    
+    if start is not None:
+        client.set_start(start)
+    if order:
+        client.set_order(order, order_direction)
+    if add_row_count:
+        client.set_add_row_count(True)
+    if relations:
+        client.set_relations(*relations)
+
     result = client.get_all_from_abraflexi()
     return format_response(result)
 
@@ -834,38 +878,42 @@ def evidence_update(
     evidence: str,
     id: Optional[str] = None,
     kod: Optional[str] = None,
-    data: Optional[Dict[str, Any]] = None
+    data: Optional[Dict[str, Any]] = None,
+    remove_external_ids: Optional[str] = None
 ) -> str:
     """Update a record in any AbraFlexi evidence.
-    
+
     Args:
         evidence: Evidence name (e.g., 'faktura-vydana', 'adresar', 'cenik')
         id: Record ID to update
         kod: Record code to update (alternative to id)
         data: Fields to update as dictionary
-        
+        remove_external_ids: If given, remove external identifiers starting
+            with this prefix (empty string removes all of them) as part of
+            the update
+
     Returns:
         str: JSON formatted update result
     """
     validate_read_only()
-    
+
     if not id and not kod:
         raise ValueError("Either id or kod must be provided")
-    
+
     identifier = int(id) if id else f"code:{kod}"
     client = get_readwrite_client(evidence)
-    
+
     # Load existing record
     if not client.load_from_abraflexi(identifier):
         raise ValueError(f"Record not found in {evidence}: {identifier}")
-    
+
     # Update fields
     if data:
         for key, value in data.items():
             client.set_data_value(key, value)
-    
-    result = client.update()
-    
+
+    result = client.update(remove_external_ids=remove_external_ids)
+
     return format_response({"success": result})
 
 
@@ -937,6 +985,1184 @@ def evidence_attach_file(
         "success": attachment_id is not None,
         "attachment_id": attachment_id
     })
+
+
+# ACTIONS, LOCKING & BATCH OPERATIONS
+@mcp.tool()
+def evidence_lock(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Lock a record in any AbraFlexi evidence, preventing further changes until unlocked.
+
+    Args:
+        evidence: Evidence name (e.g., 'faktura-vydana', 'adresar', 'cenik')
+        id: Record ID to lock
+        kod: Record code to lock (alternative to id)
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    result = client.lock()
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def evidence_unlock(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Unlock a record in any AbraFlexi evidence.
+
+    Args:
+        evidence: Evidence name (e.g., 'faktura-vydana', 'adresar', 'cenik')
+        id: Record ID to unlock
+        kod: Record code to unlock (alternative to id)
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    result = client.unlock()
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def evidence_lock_for_ucetni(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Lock a record in any AbraFlexi evidence for the accountant (lock-for-ucetni).
+
+    Args:
+        evidence: Evidence name (e.g., 'faktura-vydana', 'adresar', 'cenik')
+        id: Record ID to lock
+        kod: Record code to lock (alternative to id)
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    result = client.lock_for_ucetni()
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def evidence_storno(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Cancel (storno) a document record in any AbraFlexi evidence.
+
+    Args:
+        evidence: Evidence name (e.g., 'faktura-vydana', 'faktura-prijata')
+        id: Record ID to cancel
+        kod: Record code to cancel (alternative to id)
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    result = client.storno()
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def evidence_perform_action(
+    evidence: str,
+    action: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    params: Optional[Dict[str, Any]] = None
+) -> str:
+    """Perform a custom business action on a record via its dedicated
+    {id}/{action}.json URL (e.g. paying an invoice), as opposed to the
+    body-level @action attribute used by evidence_lock/evidence_storno/etc.
+
+    Args:
+        evidence: Evidence name (e.g., 'faktura-vydana')
+        action: Action name (e.g., 'pay')
+        id: Record ID to act on
+        kod: Record code to act on (alternative to id)
+        params: Action parameters
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    result = client.perform_action(action, params)
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def evidence_mass_update(
+    evidence: str,
+    filter_expr: str,
+    data: Optional[Dict[str, Any]] = None,
+    action: Optional[str] = None
+) -> str:
+    """Update, or perform an action on, every record of an evidence matching
+    a filter in a single request (Davkove operace).
+
+    Args:
+        evidence: Evidence name (e.g., 'cenik')
+        filter_expr: AbraFlexi filter expression selecting the records to affect
+        data: Fields to set on every matching record
+        action: If given, perform this action (e.g. 'lock') on every matching
+            record instead of (or in addition to) updating fields
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    client = get_readwrite_client(evidence)
+    result = client.mass_update(filter_expr, data, action=action)
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def evidence_batch_insert(
+    evidence: str,
+    records: List[Dict[str, Any]],
+    atomic: bool = False,
+    dry_run: bool = False
+) -> str:
+    """Insert multiple records into an evidence in a single request.
+
+    Args:
+        evidence: Evidence name
+        records: List of records to insert
+        atomic: Commit each record independently instead of the whole batch
+            as one all-or-nothing transaction
+        dry_run: Validate the batch without persisting anything
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    client = get_readwrite_client(evidence)
+    if atomic:
+        client.set_atomic(True)
+    if dry_run:
+        client.set_dry_run(True)
+
+    result = client.batch_insert(records)
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def evidence_batch_update(
+    evidence: str,
+    records: List[Dict[str, Any]],
+    atomic: bool = False,
+    dry_run: bool = False
+) -> str:
+    """Update multiple records in an evidence in a single request.
+
+    Args:
+        evidence: Evidence name
+        records: List of records to update (each must include 'id' or 'kod')
+        atomic: Commit each record independently instead of the whole batch
+            as one all-or-nothing transaction
+        dry_run: Validate the batch without persisting anything
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    client = get_readwrite_client(evidence)
+    if atomic:
+        client.set_atomic(True)
+    if dry_run:
+        client.set_dry_run(True)
+
+    result = client.batch_update(records)
+
+    return format_response({"success": result})
+
+
+# ATTACHMENTS (listing, metadata, download, thumbnail, delete)
+@mcp.tool()
+def evidence_list_attachments(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """List attachments (prilohy) of a record in any AbraFlexi evidence.
+
+    Args:
+        evidence: Evidence name
+        id: Record ID
+        kod: Record code (alternative to id)
+
+    Returns:
+        str: JSON formatted list of attachments
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    result = client.list_attachments()
+
+    return format_response(result)
+
+
+@mcp.tool()
+def evidence_get_attachment(
+    evidence: str,
+    attachment_id: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None
+) -> str:
+    """Get metadata for a single attachment of a record.
+
+    Args:
+        evidence: Evidence name
+        attachment_id: Attachment record identifier
+        id: Record ID
+        kod: Record code (alternative to id)
+
+    Returns:
+        str: JSON formatted attachment metadata
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    result = client.get_attachment(attachment_id)
+
+    return format_response(result)
+
+
+@mcp.tool()
+def evidence_download_attachment(
+    evidence: str,
+    attachment_id: str,
+    output_path: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None
+) -> str:
+    """Download an attachment's raw content to a local file.
+
+    Args:
+        evidence: Evidence name
+        attachment_id: Attachment record identifier
+        output_path: Local filesystem path to write the downloaded content to
+        id: Record ID
+        kod: Record code (alternative to id)
+
+    Returns:
+        str: JSON formatted result with the written file path and size
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    content = client.download_attachment(attachment_id)
+    if not content:
+        raise ValueError(f"Attachment not found: {attachment_id}")
+
+    with open(output_path, "wb") as fh:
+        fh.write(content)
+
+    return format_response({"success": True, "path": output_path, "size_bytes": len(content)})
+
+
+@mcp.tool()
+def evidence_get_attachment_thumbnail(
+    evidence: str,
+    attachment_id: str,
+    output_path: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    width: Optional[int] = None,
+    height: Optional[int] = None
+) -> str:
+    """Download the thumbnail of an image attachment to a local file.
+
+    Args:
+        evidence: Evidence name
+        attachment_id: Attachment record identifier
+        output_path: Local filesystem path to write the thumbnail to
+        id: Record ID
+        kod: Record code (alternative to id)
+        width: Requested thumbnail width in pixels
+        height: Requested thumbnail height in pixels
+
+    Returns:
+        str: JSON formatted result with the written file path and size
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    content = client.get_attachment_thumbnail(attachment_id, width=width, height=height)
+    if not content:
+        raise ValueError(f"Thumbnail not available for attachment: {attachment_id}")
+
+    with open(output_path, "wb") as fh:
+        fh.write(content)
+
+    return format_response({"success": True, "path": output_path, "size_bytes": len(content)})
+
+
+@mcp.tool()
+def evidence_delete_attachment(
+    evidence: str,
+    attachment_id: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None
+) -> str:
+    """Delete an attachment from a record.
+
+    Args:
+        evidence: Evidence name
+        attachment_id: Attachment record identifier to delete
+        id: Record ID
+        kod: Record code (alternative to id)
+
+    Returns:
+        str: JSON formatted deletion result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    result = client.delete_attachment(attachment_id)
+
+    return format_response({"success": result})
+
+
+# REPORTS, QR CODES & USER QUERIES
+@mcp.tool()
+def evidence_export_report(
+    evidence: str,
+    output_path: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    report_format: str = "pdf",
+    report_name: Optional[str] = None,
+    report_lang: Optional[str] = None,
+    report_sign: bool = False
+) -> str:
+    """Export a printable report (PDF/XLSX) for a record, or the whole
+    evidence listing, to a local file.
+
+    Args:
+        evidence: Evidence name
+        output_path: Local filesystem path to write the exported report to
+        id: Record ID to export a report for; the whole evidence listing is
+            exported if both id and kod are omitted
+        kod: Record code (alternative to id)
+        report_format: "pdf" or "xls"
+        report_name: Specific report identifier (see evidence_get_reports)
+        report_lang: Report language ("cs", "sk", "en" or "de")
+        report_sign: Whether to electronically sign the exported PDF
+
+    Returns:
+        str: JSON formatted result with the written file path and size
+    """
+    record_id: Optional[Union[int, str]] = None
+    if id:
+        record_id = int(id)
+    elif kod:
+        record_id = f"code:{kod}"
+
+    client = get_readwrite_client(evidence)
+    content = client.export_report(
+        record_id=record_id,
+        report_format=report_format,
+        report_name=report_name,
+        report_lang=report_lang,
+        report_sign=report_sign,
+    )
+    if not content:
+        raise ValueError("Report export failed or returned no data")
+
+    with open(output_path, "wb") as fh:
+        fh.write(content)
+
+    return format_response({"success": True, "path": output_path, "size_bytes": len(content)})
+
+
+@mcp.tool()
+def evidence_get_qr_code(
+    evidence: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    size: int = 140,
+    output_path: Optional[str] = None
+) -> str:
+    """Get the payment QR code for a document record.
+
+    Args:
+        evidence: Evidence name (e.g., 'faktura-vydana')
+        id: Record ID
+        kod: Record code (alternative to id)
+        size: Requested image size in pixels
+        output_path: If given, write the PNG to this local path instead of
+            returning it inline as a base64 data URI
+
+    Returns:
+        str: JSON formatted result - either the written file path, or a
+            base64 data URI
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    if output_path:
+        content = client.get_qr_code_image(size)
+        if not content:
+            raise ValueError("QR code export failed or returned no data")
+        with open(output_path, "wb") as fh:
+            fh.write(content)
+        return format_response({"success": True, "path": output_path, "size_bytes": len(content)})
+
+    data_uri = client.get_qr_code_base64(size)
+    return format_response({"success": bool(data_uri), "data_uri": data_uri})
+
+
+@mcp.tool()
+def call_user_query(
+    query_id: str,
+    params: Optional[Dict[str, Any]] = None,
+    method: str = "GET"
+) -> str:
+    """Call a saved user-defined query (uzivatelsky dotaz).
+
+    Args:
+        query_id: Identifier of the saved query
+        params: Query parameters; a list value repeats the parameter in the
+            URL, matching AbraFlexi's N-arity query parameter syntax
+        method: HTTP method to use (GET or POST)
+
+    Returns:
+        str: JSON formatted query result rows
+    """
+    config = get_abraflexi_config()
+    client = ReadOnly(None, config)
+    result = client.call_user_query(query_id, params=params, method=method)
+    return format_response(result)
+
+
+# EVIDENCE METADATA & SUMMATION
+@mcp.tool()
+def evidence_get_properties(evidence: str) -> str:
+    """Get the list of properties (fields) supported by an evidence.
+
+    Args:
+        evidence: Evidence name
+
+    Returns:
+        str: JSON formatted list of properties
+    """
+    client = get_readonly_client(evidence)
+    result = client.get_properties()
+    return format_response(result)
+
+
+@mcp.tool()
+def evidence_get_reports(evidence: str) -> str:
+    """Get the list of printable reports available for an evidence.
+
+    Args:
+        evidence: Evidence name
+
+    Returns:
+        str: JSON formatted list of reports
+    """
+    client = get_readonly_client(evidence)
+    result = client.get_reports()
+    return format_response(result)
+
+
+@mcp.tool()
+def evidence_get_relations_list(evidence: str) -> str:
+    """Get the list of sub-evidences (relations) available for an evidence.
+
+    Args:
+        evidence: Evidence name
+
+    Returns:
+        str: JSON formatted list of relations
+    """
+    client = get_readonly_client(evidence)
+    result = client.get_relations_list()
+    return format_response(result)
+
+
+@mcp.tool()
+def evidence_get_sum(
+    evidence: str,
+    filter_expr: Optional[str] = None,
+    conditions: Optional[Dict[str, Any]] = None
+) -> str:
+    """Get summation (totals) for an evidence, optionally filtered.
+
+    Args:
+        evidence: Evidence name
+        filter_expr: AbraFlexi filter expression to scope the summation
+        conditions: Additional URL parameters to apply to the request
+
+    Returns:
+        str: JSON formatted summation result
+    """
+    client = get_readonly_client(evidence)
+    if filter_expr:
+        client.filter = filter_expr
+    result = client.get_sum(conditions)
+    return format_response(result)
+
+
+@mcp.tool()
+def evidence_get_record_changes(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Get the change history (Prehled zmen zaznamu) of a single record.
+
+    Args:
+        evidence: Evidence name
+        id: Record ID
+        kod: Record code (alternative to id)
+
+    Returns:
+        str: JSON formatted list of change entries
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = str(id) if id else f"code:{kod}"
+    client = get_readonly_client(evidence)
+    result = client.perform_request(f"{identifier}/zmeny.json")
+
+    return format_response(result)
+
+
+# LABELS (stitky)
+@mcp.tool()
+def evidence_get_labels(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Get all labels (stitky) currently assigned to a record.
+
+    Args:
+        evidence: Evidence name
+        id: Record ID
+        kod: Record code (alternative to id)
+
+    Returns:
+        str: JSON formatted list of label codes
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readonly_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    labels_value = client.get_data_value("stitky")
+    labels = [label.strip() for label in str(labels_value or "").split(",") if label.strip()]
+
+    return format_response(labels)
+
+
+@mcp.tool()
+def evidence_set_label(evidence: str, label: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Add a label to a record, keeping its existing labels.
+
+    Args:
+        evidence: Evidence name
+        label: Label code to assign (e.g. 'code:VIP')
+        id: Record ID
+        kod: Record code (alternative to id)
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    client.insert_to_abraflexi({"id": client.get_record_ident(), "stitky": label})
+
+    return format_response({"success": client.last_response_code == 201})
+
+
+@mcp.tool()
+def evidence_unset_label(
+    evidence: str,
+    labels_to_remove: List[str],
+    id: Optional[str] = None,
+    kod: Optional[str] = None
+) -> str:
+    """Remove specific label(s) from a record, keeping the rest.
+
+    Args:
+        evidence: Evidence name
+        labels_to_remove: Label code(s) to remove
+        id: Record ID
+        kod: Record code (alternative to id)
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    to_remove = set(labels_to_remove)
+    current = str(client.get_data_value("stitky") or "").split(",")
+    remaining = [label.strip() for label in current if label.strip() and label.strip() not in to_remove]
+
+    client.insert_to_abraflexi(
+        {"id": client.get_record_ident(), "stitky@removeAll": "true", "stitky": remaining}
+    )
+
+    return format_response({"success": client.last_response_code == 201})
+
+
+@mcp.tool()
+def evidence_unset_labels(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Remove all labels from a record.
+
+    Args:
+        evidence: Evidence name
+        id: Record ID
+        kod: Record code (alternative to id)
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    client = get_readwrite_client(evidence)
+
+    if not client.load_from_abraflexi(identifier):
+        raise ValueError(f"Record not found in {evidence}: {identifier}")
+
+    client.insert_to_abraflexi({"id": client.get_record_ident(), "stitky@removeAll": "true"})
+
+    return format_response({"success": client.last_response_code == 201})
+
+
+# CHANGES API (company-wide incremental sync)
+@mcp.tool()
+def changes_enable() -> str:
+    """Enable change tracking for the current company (Changes API).
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+    config = get_abraflexi_config()
+    client = Changes(None, config)
+    result = client.enable()
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def changes_disable() -> str:
+    """Disable change tracking for the current company (Changes API).
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+    config = get_abraflexi_config()
+    client = Changes(None, config)
+    result = client.disable()
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def changes_status() -> str:
+    """Check whether change tracking is currently enabled for the current company.
+
+    Returns:
+        str: JSON formatted status
+    """
+    config = get_abraflexi_config()
+    client = Changes(None, config)
+    result = client.get_status()
+    return format_response({"enabled": result})
+
+
+@mcp.tool()
+def changes_get(
+    start: Optional[int] = None,
+    limit: Optional[int] = None,
+    evidences: Optional[List[str]] = None
+) -> str:
+    """Get a page of company-wide recorded changes (Changes API), for
+    incremental synchronization of external systems.
+
+    Args:
+        start: Global version to start listing from (inclusive); defaults to
+            the beginning of tracked history
+        limit: Maximum number of changes to return (server default 100, max 1000)
+        evidences: Restrict the listing to these evidence names
+
+    Returns:
+        str: JSON formatted page with 'changes', 'next' and 'global_version'
+    """
+    config = get_abraflexi_config()
+    client = Changes(None, config)
+    result = client.get_changes(start=start, limit=limit, evidences=evidences)
+    return format_response(result)
+
+
+# ISSUED INVOICE BUSINESS LOGIC (FakturaVydana)
+@mcp.tool()
+def invoice_issued_match_payment(
+    payment_id: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    payment_evidence: str = "banka",
+    zbytek: str = "ignorovat",
+    overpay_to: str = ""
+) -> str:
+    """Match an issued invoice against a payment document (Parovani plateb).
+
+    Args:
+        payment_id: ID (or 'code:X') of the paying document
+        id: Invoice ID
+        kod: Invoice code (alternative to id)
+        payment_evidence: Evidence of the paying document ('banka',
+            'interni-doklad' or 'pokladni-pohyb')
+        zbytek: How to handle any remainder - one of ne|zauctovat|ignorovat|
+            castecnaUhrada|castecnaUhradaNeboZauctovat|castecnaUhradaNeboIgnorovat
+        overpay_to: Document type code to use for an overpayment, if any
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    invoice = get_faktura_vydana_client(identifier)
+
+    payment = get_readwrite_client(payment_evidence)
+    payment.my_key = int(payment_id) if payment_id.isdigit() else payment_id
+
+    result = invoice.match_payment(payment, zbytek=zbytek, overpay_to=overpay_to)
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def invoice_issued_cash_payment(
+    value: float,
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    extra_fields: Optional[Dict[str, Any]] = None
+) -> str:
+    """Pay an issued invoice in cash (Hotovostni uhrada).
+
+    Args:
+        value: Amount to pay
+        id: Invoice ID
+        kod: Invoice code (alternative to id)
+        extra_fields: Optional payment properties: 'pokladna' (cash register
+            code, default 'code:POKLADNA KC'), 'typDokl' (cash document type
+            code, default 'code:STANDARD'), 'kurzKDatuUhrady' (bool),
+            'datumUhrady' (default today)
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    invoice = get_faktura_vydana_client(identifier)
+
+    result = invoice.cash_payment(value, **(extra_fields or {}))
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def invoice_issued_deduct_advance(
+    advance_invoice_id: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    extra_fields: Optional[Dict[str, Any]] = None
+) -> str:
+    """Deduct an advance invoice from a tax document invoice (Odpocet zaloh a ZDD).
+
+    Args:
+        advance_invoice_id: ID (or 'code:X') of the advance ('zalohova') invoice being deducted
+        id: Invoice ID
+        kod: Invoice code (alternative to id)
+        extra_fields: Deduction properties; 'castkaMen' defaults to the
+            advance invoice's total
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    invoice = get_faktura_vydana_client(identifier)
+    advance = get_faktura_vydana_client(
+        int(advance_invoice_id) if advance_invoice_id.isdigit() else advance_invoice_id
+    )
+
+    result = invoice.deduct_advance(advance, **(extra_fields or {}))
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def invoice_issued_deduct_zdd(
+    zdd_invoice_id: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    extra_fields: Optional[Dict[str, Any]] = None
+) -> str:
+    """Deduct an advance tax document (ZDD) from an issued invoice (Odpocet zaloh a ZDD).
+
+    Args:
+        zdd_invoice_id: ID (or 'code:X') of the ZDD invoice being deducted
+        id: Invoice ID
+        kod: Invoice code (alternative to id)
+        extra_fields: Deduction properties; the 'castka*Men' fields default
+            to the ZDD invoice's corresponding totals
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    invoice = get_faktura_vydana_client(identifier)
+    zdd = get_faktura_vydana_client(
+        int(zdd_invoice_id) if zdd_invoice_id.isdigit() else zdd_invoice_id
+    )
+
+    result = invoice.deduct_zdd(zdd, **(extra_fields or {}))
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def invoice_issued_link_zdd(
+    income_id: str,
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    income_evidence: str = "banka"
+) -> str:
+    """Link an advance tax document (ZDD) to an income payment (Vazby ZDD).
+
+    Args:
+        income_id: ID (or 'code:X') of the income payment document
+        id: Invoice ID
+        kod: Invoice code (alternative to id)
+        income_evidence: Evidence of the income payment document ('banka' or 'pokladni-pohyb')
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    invoice = get_faktura_vydana_client(identifier)
+
+    income = get_readwrite_client(income_evidence)
+    income.my_key = int(income_id) if income_id.isdigit() else income_id
+
+    result = invoice.link_zdd(income)
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def invoice_issued_unlink_zdd(id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Remove an advance tax document (ZDD) bonding from an issued invoice (Vazby ZDD).
+
+    Args:
+        id: Invoice ID
+        kod: Invoice code (alternative to id)
+
+    Returns:
+        str: JSON formatted result
+    """
+    validate_read_only()
+
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    invoice = get_faktura_vydana_client(identifier)
+
+    result = invoice.unlink_zdd()
+
+    return format_response({"success": result})
+
+
+@mcp.tool()
+def invoice_issued_overdue_days(due_date: str) -> str:
+    """Get the number of days an invoice is overdue by, given its due date.
+    Pure date arithmetic - does not contact AbraFlexi.
+
+    Args:
+        due_date: Due date as an ISO 'YYYY-MM-DD' string
+
+    Returns:
+        str: JSON formatted result with the (possibly negative) number of overdue days
+    """
+    days = FakturaVydana.overdue_days(due_date)
+    return format_response({"overdue_days": days})
+
+
+@mcp.tool()
+def invoice_issued_get_email(id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Get the best recipient email address for an issued invoice.
+
+    Args:
+        id: Invoice ID
+        kod: Invoice code (alternative to id)
+
+    Returns:
+        str: JSON formatted result with the resolved email address
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    invoice = get_faktura_vydana_client(identifier)
+
+    return format_response({"email": invoice.get_email()})
+
+
+@mcp.tool()
+def invoice_issued_get_recipients(
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    purpose: str = ""
+) -> str:
+    """Get all recipient email addresses for an issued invoice.
+
+    Args:
+        id: Invoice ID
+        kod: Invoice code (alternative to id)
+        purpose: Contact purpose (Fak|Obj|Nab|Ppt|Skl|Pok); auto-detected if omitted
+
+    Returns:
+        str: JSON formatted result with a comma-separated list of email addresses
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    invoice = get_faktura_vydana_client(identifier)
+
+    return format_response({"recipients": invoice.get_recipients(purpose)})
+
+
+# CONTACT CONVENIENCE LOOKUPS (Adresar)
+@mcp.tool()
+def contact_get_notification_email(
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    purpose: str = ""
+) -> str:
+    """Get the email address to notify for a contact, preferring a primary/
+    purpose-matching contact over the address's own email.
+
+    Args:
+        id: Contact ID
+        kod: Contact code (alternative to id)
+        purpose: Contact purpose - one of Fak|Obj|Nab|Ppt|Skl|Pok
+
+    Returns:
+        str: JSON formatted result with the resolved email address
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    contact = get_adresar_client(identifier)
+
+    return format_response({"email": contact.get_notification_email_address(purpose)})
+
+
+@mcp.tool()
+def contact_get_cell_phone(
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    purpose: str = ""
+) -> str:
+    """Get the cell phone number to use for a contact.
+
+    Args:
+        id: Contact ID
+        kod: Contact code (alternative to id)
+        purpose: Contact purpose - one of Fak|Obj|Nab|Ppt|Skl|Pok
+
+    Returns:
+        str: JSON formatted result with the resolved phone number
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    contact = get_adresar_client(identifier)
+
+    return format_response({"cell_phone": contact.get_cell_phone_number(purpose)})
+
+
+@mcp.tool()
+def contact_get_any_phone(
+    id: Optional[str] = None,
+    kod: Optional[str] = None,
+    purpose: str = ""
+) -> str:
+    """Get any usable phone number for a contact, preferring mobile over landline.
+
+    Args:
+        id: Contact ID
+        kod: Contact code (alternative to id)
+        purpose: Contact purpose - one of Fak|Obj|Nab|Ppt|Skl|Pok
+
+    Returns:
+        str: JSON formatted result with the resolved phone number
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    contact = get_adresar_client(identifier)
+
+    return format_response({"phone": contact.get_any_phone_number(purpose)})
+
+
+@mcp.tool()
+def contact_get_bank_accounts(id: Optional[str] = None, kod: Optional[str] = None) -> str:
+    """Get the bank account(s) registered for a contact.
+
+    Args:
+        id: Contact ID
+        kod: Contact code (alternative to id)
+
+    Returns:
+        str: JSON formatted list of bank accounts (buc, smerKod)
+    """
+    if not id and not kod:
+        raise ValueError("Either id or kod must be provided")
+
+    identifier = int(id) if id else f"code:{kod}"
+    contact = get_adresar_client(identifier)
+
+    return format_response(contact.get_bank_account_number())
 
 
 @mcp.tool()
