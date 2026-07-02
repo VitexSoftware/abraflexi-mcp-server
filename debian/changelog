@@ -1,3 +1,12 @@
+abraflexi-mcp-server (1.2.2) unstable; urgency=medium
+
+  * Narrow build targets to debian:trixie only: bookworm and noble also
+    fail the install-test stage because python3-fastmcp's transitive
+    dependencies (opentelemetry-api, py-key-value-aio) are only built
+    for trixie in this repo.
+
+ -- vitex <info@vitexsoftware.cz>  Thu, 02 Jul 2026 13:14:57 +0200
+
 abraflexi-mcp-server (1.2.1) unstable; urgency=medium
 
   * Fix pipeline blockers that were preventing the 1.2.0 build from
