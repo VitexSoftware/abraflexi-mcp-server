@@ -171,38 +171,12 @@ For other MCP-compatible clients, you'll need to:
 
 ## Available Tools
 
-Once integrated, the following tools are available:
-
-### Invoice Tools
-- `invoice_issued_get` - Get issued invoices
-- `invoice_issued_create` - Create issued invoice
-- `invoice_issued_update` - Update issued invoice
-- `invoice_issued_delete` - Delete issued invoice
-- `invoice_received_get` - Get received invoices
-- `invoice_received_create` - Create received invoice
-
-### Contact Tools
-- `contact_get` - Get contacts/companies
-- `contact_create` - Create contact
-- `contact_update` - Update contact
-- `contact_delete` - Delete contact
-
-### Product Tools
-- `product_get` - Get products
-- `product_create` - Create product
-- `product_update` - Update product
-- `product_delete` - Delete product
-
-### Bank Transaction Tools
-- `bank_transaction_get` - Get bank transactions
-- `bank_transaction_create` - Create bank transaction
-
-### Generic Tools
-- `evidence_get` - Query any evidence
-- `evidence_create` - Create record in any evidence
-- `evidence_update` - Update record in any evidence
-- `evidence_delete` - Delete record from any evidence
-- `evidence_list` - List all available evidences
+Once integrated, 64 tools are available, covering invoices, contacts,
+products, bank transactions, locking/actions, batch operations,
+attachments, reports/QR codes, evidence metadata, labels, the
+company-wide Changes API, and business-logic tools for issued invoices
+and contacts. See the [Features section of the README](README.md#features)
+for the full, categorized list.
 
 ## Security Best Practices
 

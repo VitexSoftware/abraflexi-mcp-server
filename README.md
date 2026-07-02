@@ -10,6 +10,12 @@ A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration us
 
 ## Features
 
+64 tools in total, covering the full REST surface exposed by
+[python-abraflexi](https://github.com/VitexSoftware/python-abraflexi):
+dedicated tools for the most common evidences (invoices, contacts,
+products, bank transactions), plus generic `evidence_*` tools that work
+against *any* AbraFlexi evidence by name.
+
 ### 📄 Invoice Management
 - `invoice_issued_get` - Retrieve issued invoices (faktura-vydana)
 - `invoice_issued_create` - Create new issued invoices
@@ -18,11 +24,28 @@ A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration us
 - `invoice_received_get` - Retrieve received invoices (faktura-prijata)
 - `invoice_received_create` - Create new received invoices
 
+### 💳 Issued Invoice Business Logic
+- `invoice_issued_match_payment` - Match an invoice against a payment document (Párování plateb)
+- `invoice_issued_cash_payment` - Pay an invoice in cash (Hotovostní úhrada)
+- `invoice_issued_deduct_advance` - Deduct an advance invoice (Odpočet záloh a ZDD)
+- `invoice_issued_deduct_zdd` - Deduct an advance tax document, ZDD (Odpočet záloh a ZDD)
+- `invoice_issued_link_zdd` - Link a ZDD to an income payment (Vazby ZDD)
+- `invoice_issued_unlink_zdd` - Remove a ZDD bonding (Vazby ZDD)
+- `invoice_issued_overdue_days` - Compute days overdue from a due date (pure, no API call)
+- `invoice_issued_get_email` - Resolve the best recipient email for an invoice
+- `invoice_issued_get_recipients` - Resolve all recipient emails for an invoice
+
 ### 👥 Contact Management
 - `contact_get` - Retrieve contacts and companies (adresar)
 - `contact_create` - Create new contacts
 - `contact_update` - Update existing contacts
 - `contact_delete` - Remove contacts
+
+### ☎️ Contact Convenience Lookups
+- `contact_get_notification_email` - Best email to notify (primary/purpose-matching contact)
+- `contact_get_cell_phone` - Cell phone number to use
+- `contact_get_any_phone` - Any usable phone number (mobile preferred over landline)
+- `contact_get_bank_accounts` - Registered bank account(s) for a contact
 
 ### 📦 Product Management
 - `product_get` - Retrieve products from price list (cenik)
@@ -35,11 +58,49 @@ A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration us
 - `bank_transaction_create` - Create new bank transactions
 
 ### 🔧 Generic Evidence Operations
-- `evidence_get` - Get records from any evidence
+- `evidence_get` - Get records from any evidence (filter, pagination, sorting, relations)
 - `evidence_create` - Create record in any evidence
-- `evidence_update` - Update record in any evidence
+- `evidence_update` - Update record in any evidence (supports `remove_external_ids`)
 - `evidence_delete` - Delete record from any evidence
 - `evidence_list` - List all available evidences
+
+### 🔒 Locking, Actions & Batch Operations
+- `evidence_lock` / `evidence_unlock` / `evidence_lock_for_ucetni` - Lock/unlock a record
+- `evidence_storno` - Cancel (storno) a document record
+- `evidence_perform_action` - Call a record's dedicated business action (e.g. `pay`)
+- `evidence_mass_update` - Update, or act on, every record matching a filter (Dávkové operace)
+- `evidence_batch_insert` / `evidence_batch_update` - Insert/update many records in one request
+
+### 📎 Attachments
+- `evidence_attach_file` - Attach a local file to any record
+- `evidence_list_attachments` - List a record's attachments
+- `evidence_get_attachment` - Get metadata for a single attachment
+- `evidence_download_attachment` - Download an attachment to a local file
+- `evidence_get_attachment_thumbnail` - Download an image attachment's thumbnail
+- `evidence_delete_attachment` - Delete an attachment
+
+### 🧾 Reports, QR Codes & User Queries
+- `evidence_export_report` - Export a PDF/XLSX report for a record or evidence listing
+- `evidence_get_qr_code` - Get a document's payment QR code (file or base64 data URI)
+- `call_user_query` - Call a saved user-defined query (uživatelský dotaz)
+
+### ℹ️ Evidence Metadata & Summation
+- `evidence_get_properties` - List the fields supported by an evidence
+- `evidence_get_reports` - List the printable reports available for an evidence
+- `evidence_get_relations_list` - List the sub-evidences (relations) available for an evidence
+- `evidence_get_sum` - Get summation (totals) for an evidence
+- `evidence_get_record_changes` - Get a single record's change history
+
+### 🏷️ Labels (štítky)
+- `evidence_get_labels` - Get labels assigned to a record
+- `evidence_set_label` - Add a label
+- `evidence_unset_label` - Remove specific label(s)
+- `evidence_unset_labels` - Remove all labels
+
+### 🔄 Changes API (company-wide incremental sync)
+- `changes_enable` / `changes_disable` - Toggle change tracking
+- `changes_status` - Check whether change tracking is enabled
+- `changes_get` - Page through recorded changes since a given version
 
 ## Installation
 
@@ -226,13 +287,48 @@ contact_create(
 product_get(nazev="Widget", limit=5)
 ```
 
-**Generic evidence query:**
+**Generic evidence query (with pagination/sorting):**
 ```python
 evidence_get(
     evidence="faktura-vydana",
     filter_expr="datVyst >= '2024-01-01'",
-    limit=20
+    order="datVyst",
+    order_direction="D",
+    limit=20,
+    start=0
 )
+```
+
+**Attach a local file to any record:**
+```python
+evidence_attach_file(evidence="cenik", kod="PRODUCT01", filepath="/path/to/photo.jpg")
+```
+
+**Lock an invoice, then export its PDF:**
+```python
+evidence_lock(evidence="faktura-vydana", kod="INV-2024-001")
+evidence_export_report(
+    evidence="faktura-vydana",
+    kod="INV-2024-001",
+    output_path="/tmp/invoice.pdf",
+    report_name="dodaciList"
+)
+```
+
+**Mass-update every price-list item from a supplier:**
+```python
+evidence_mass_update(
+    evidence="cenik",
+    filter_expr="dodavatel = 'code:SUPPLIER01'",
+    data={"stitky": "code:VIP"}
+)
+```
+
+**Incremental sync via the Changes API:**
+```python
+changes_enable()
+page = changes_get(start=0, limit=500, evidences=["faktura-vydana"])
+# page["changes"], page["next"], page["global_version"]
 ```
 
 ## MCP Integration
