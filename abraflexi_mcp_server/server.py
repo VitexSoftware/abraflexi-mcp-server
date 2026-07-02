@@ -748,46 +748,69 @@ def bank_transaction_get(
 
 @mcp.tool()
 def bank_transaction_create(
+    kod: str,
     banka: str,
-    datum: str,
+    datum_vystaveni: str,
     castka: float,
+    typ_pohybu: str = "prijem",
+    typ_dokladu: str = "STANDARD",
     popis: Optional[str] = None,
+    firma: Optional[str] = None,
     extra_fields: Optional[Dict[str, Any]] = None
 ) -> str:
     """Create a new bank transaction in AbraFlexi.
-    
+
     Args:
-        banka: Bank account reference (e.g., 'code:BANK01')
-        datum: Transaction date (YYYY-MM-DD format)
-        castka: Transaction amount
+        kod: Transaction code (unique identifier)
+        banka: Bank account reference (e.g., 'code:BANKA-CZK')
+        datum_vystaveni: Transaction date (YYYY-MM-DD format)
+        castka: Transaction amount, VAT-exempt (sets sumOsv on an
+            itemless document; use extra_fields for a VAT-split amount
+            or actual polozkyDokladu line items instead)
+        typ_pohybu: Movement direction - 'prijem' (income, default) or
+            'vydej' (expense)
+        typ_dokladu: Document type code (see the typ-banka evidence);
+            defaults to 'STANDARD'
         popis: Transaction description
+        firma: Related contact reference (e.g., 'code:CUSTOMER01')
         extra_fields: Additional transaction fields
-        
+
     Returns:
         str: JSON formatted creation result
     """
     validate_read_only()
-    
+
     client = get_readwrite_client("banka")
-    
+
     # Set required fields
+    client.set_data_value("kod", kod)
     client.set_data_value("banka", banka)
-    client.set_data_value("datum", datum)
-    client.set_data_value("castka", castka)
-    
+    client.set_data_value("datVyst", datum_vystaveni)
+    client.set_data_value("typDokl", f"code:{typ_dokladu}")
+    client.set_data_value("typPohybuK", f"typPohybu.{typ_pohybu}")
+    # Without line items, the amount can only be set via sumOsv/sumZkl*
+    # on an explicitly itemless ("bezPolozek") document - AbraFlexi
+    # rejects a directly-set sumCelkem/sumOsv otherwise, since it's
+    # normally computed from polozkyDokladu.
+    client.set_data_value("bezPolozek", True)
+    client.set_data_value("sumOsv", castka)
+
     if popis:
         client.set_data_value("popis", popis)
-    
+    if firma:
+        client.set_data_value("firma", firma)
+
     # Set additional fields
     if extra_fields:
         for key, value in extra_fields.items():
             client.set_data_value(key, value)
-    
+
     result = client.insert_to_abraflexi()
-    
+
     return format_response({
         "success": result,
-        "id": client.last_inserted_id
+        "id": client.last_inserted_id,
+        "kod": kod
     })
 
 

@@ -1,3 +1,13 @@
+abraflexi-mcp-server (1.2.3) unstable; urgency=medium
+
+  * Fix bank_transaction_create: 'castka'/'datum' were never real banka
+    fields (tool has been non-functional for setting an amount since
+    inception). Now uses kod/typDokl/typPohybuK/datVyst (all mandatory)
+    and sets the amount via bezPolozek+sumOsv, verified live against
+    demo.flexibee.eu.
+
+ -- vitex <info@vitexsoftware.cz>  Thu, 02 Jul 2026 13:38:05 +0200
+
 abraflexi-mcp-server (1.2.2) unstable; urgency=medium
 
   * Narrow build targets to debian:trixie only: bookworm and noble also
