@@ -5,7 +5,14 @@
 // debian:forky disabled: Forky is still unstable/research-only.
 // The full Debian package ecosystem is not yet available for Forky.
 // Re-enable once the stack builds cleanly for Forky.
-String[] distributions = ['debian:bookworm', 'debian:trixie', 'ubuntu:jammy', 'ubuntu:noble']
+//
+// ubuntu:jammy disabled: python3-abraflexi/python3-fastmcp are not
+// installable there (missing/incompatible builds for jammy's older
+// Python base), so the install-test stage fails with "held broken
+// packages" (see build #27:
+// https://jenkins.proxy.spojenet.cz/job/VitexSoftware/job/abraflexi-mcp-server/27/).
+// Re-enable once those dependencies have working jammy builds.
+String[] distributions = ['debian:bookworm', 'debian:trixie', 'ubuntu:noble']
 
 String vendor = 'vitexsoftware'
 //String distroFamily = ''

@@ -1,3 +1,13 @@
+abraflexi-mcp-server (1.2.1) unstable; urgency=medium
+
+  * Fix pipeline blockers that were preventing the 1.2.0 build from
+    publishing: (1) pyproject.toml license field must be {text = ...}
+    not a bare string for the setuptools version on bookworm/noble; (2)
+    disable ubuntu:jammy, where python3-abraflexi/python3-fastmcp are
+    not installable.
+
+ -- vitex <info@vitexsoftware.cz>  Thu, 02 Jul 2026 13:04:31 +0200
+
 abraflexi-mcp-server (1.2.0) unstable; urgency=medium
 
   * Expose python-abraflexi 1.1.x feature set: locking/actions, mass
