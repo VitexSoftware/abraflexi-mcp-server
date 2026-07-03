@@ -437,7 +437,10 @@ def contact_get(
     if kod:
         filters.append(f"kod='{kod}'")
     if nazev:
-        filters.append(f"nazev like '*{nazev}*'")
+        # AbraFlexi's `like` is a plain case-insensitive substring match and
+        # takes no wildcards; wrapping the term in '*...*' makes it search for
+        # a literal '*' and never matches.
+        filters.append(f"nazev like '{nazev}'")
     
     if filters:
         client.filter = " AND ".join(filters)
@@ -593,7 +596,10 @@ def product_get(
     if kod:
         filters.append(f"kod='{kod}'")
     if nazev:
-        filters.append(f"nazev like '*{nazev}*'")
+        # AbraFlexi's `like` is a plain case-insensitive substring match and
+        # takes no wildcards; wrapping the term in '*...*' makes it search for
+        # a literal '*' and never matches.
+        filters.append(f"nazev like '{nazev}'")
     
     if filters:
         client.filter = " AND ".join(filters)
