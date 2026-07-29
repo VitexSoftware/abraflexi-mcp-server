@@ -1,4 +1,5 @@
 # AbraFlexi MCP Server
+![Packaging: deb](https://img.shields.io/badge/packaging-.deb-red?logo=debian&logoColor=white)
 
 <img src="debian/abraflexi-mcp-server.svg" alt="AbraFlexi MCP Server icon" width="96" height="96">
 
