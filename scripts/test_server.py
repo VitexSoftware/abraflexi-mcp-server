@@ -404,6 +404,7 @@ def test_mcp_tools():
         print()
 
         expected_tools = [
+            "company_create",
             "invoice_issued_get", "invoice_issued_create",
             "invoice_issued_update", "invoice_issued_delete",
             "invoice_received_get", "invoice_received_create",
@@ -443,6 +444,7 @@ def test_mcp_tools():
         print()
         print("Checking extra_fields / data parameter on write tools...")
         create_tools = {
+            "company_create": "extra_fields",
             "invoice_issued_create": "extra_fields",
             "invoice_received_create": "extra_fields",
             "contact_create": "extra_fields",

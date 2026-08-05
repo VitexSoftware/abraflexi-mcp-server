@@ -11,7 +11,7 @@ A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration us
 
 ## Features
 
-64 tools in total, covering the full REST surface exposed by
+65 tools in total, covering the full REST surface exposed by
 [python-abraflexi](https://github.com/VitexSoftware/python-abraflexi):
 dedicated tools for the most common evidences (invoices, contacts,
 products, bank transactions), plus generic `evidence_*` tools that work
@@ -35,6 +35,9 @@ against *any* AbraFlexi evidence by name.
 - `invoice_issued_overdue_days` - Compute days overdue from a due date (pure, no API call)
 - `invoice_issued_get_email` - Resolve the best recipient email for an invoice
 - `invoice_issued_get_recipients` - Resolve all recipient emails for an invoice
+
+### 🏢 Company Management
+- `company_create` - Found a brand-new AbraFlexi company (accounting unit) - requires server-admin/license REST rights
 
 ### 👥 Contact Management
 - `contact_get` - Retrieve contacts and companies (adresar)
