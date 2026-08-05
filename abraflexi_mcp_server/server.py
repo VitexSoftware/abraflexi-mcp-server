@@ -15,8 +15,10 @@ import os
 import json
 import logging
 from typing import Any, Dict, List, Optional, Union
+from urllib.parse import urlencode
 from fastmcp import FastMCP
 from python_abraflexi import ReadOnly, ReadWrite, Changes, Adresar, FakturaVydana
+from python_abraflexi.exceptions import AuthenticationException, PermissionException
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -404,6 +406,89 @@ def invoice_received_create(
         "success": result,
         "id": client.last_inserted_id,
         "kod": kod
+    })
+
+
+# COMPANY MANAGEMENT (founding new accounting units)
+@mcp.tool()
+def company_create(
+    name: str,
+    country: str = "CZ",
+    org_type: Optional[str] = None,
+    ic: Optional[str] = None,
+    vatid: Optional[str] = None,
+    use_demo: bool = False,
+    extra_fields: Optional[Dict[str, Any]] = None
+) -> str:
+    """Create a brand-new AbraFlexi company (accounting unit) at the server root.
+
+    Unlike every other *_create tool, this does NOT operate on the company
+    configured via ABRAFLEXI_COMPANY - it calls the server-level
+    "/admin/zalozeni-firmy" endpoint, which requires a REST user with
+    server-admin/license-level rights (not just rights on one company).
+
+    Args:
+        name: Display name of the new company. The company identifier
+            (dbNazev, used as {company} in later /c/{company}/... calls) is
+            derived from this automatically.
+        country: Legislation - "CZ" or "SK".
+        org_type: Organization type, e.g. "PODNIKATELE+PU" (double-entry
+            bookkeeping), "PODNIKATELE+DE" (tax records), "NEZISKOVE",
+            "ROZPOCTOVE" for CZ; "PODNIKATELIA+PU" for SK.
+        ic: Company registration number (ICO) - auto-fills VAT payer
+            status, registered seat and other fields from the ARES registry.
+        vatid: VAT ID (DIC), if not auto-filled via ic.
+        use_demo: Seed the new company with demo data (CZ + PODNIKATELE+PU only).
+        extra_fields: Any additional query parameters to pass through.
+
+    Returns:
+        str: JSON with success, the new company's dbNazev (identifier) and
+            full URL, parsed from the response's Location header.
+
+    Raises:
+        ValueError: If the configured REST user lacks server-admin/license
+            rights to create companies (AbraFlexi returns 401/402/403).
+    """
+    validate_read_only()
+
+    config = get_abraflexi_config()
+    client = ReadOnly(None, {**config, "evidence": None})
+
+    params: Dict[str, str] = {"name": name, "country": country}
+    if org_type:
+        params["org-type"] = org_type
+    if ic:
+        params["ic"] = ic
+    if vatid:
+        params["vatid"] = vatid
+    if use_demo:
+        params["use-demo"] = "true"
+    if extra_fields:
+        params.update({key: str(value) for key, value in extra_fields.items()})
+
+    path = "admin/zalozeni-firmy?" + urlencode(params)
+
+    try:
+        client._perform_root_request(path, "PUT")
+    except (AuthenticationException, PermissionException) as exc:
+        raise ValueError(
+            "Cannot create a new AbraFlexi company: the configured REST "
+            "user lacks server-admin/license rights required for company "
+            f"creation ({exc})"
+        ) from exc
+
+    location = ""
+    if client.last_response is not None:
+        location = client.last_response.headers.get("Location", "")
+
+    db_nazev = location.rstrip("/").split("/")[-1] if location else None
+    if db_nazev and db_nazev.endswith(".json"):
+        db_nazev = db_nazev[: -len(".json")]
+
+    return format_response({
+        "success": True,
+        "dbNazev": db_nazev,
+        "url": location,
     })
 
 

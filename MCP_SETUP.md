@@ -171,8 +171,8 @@ For other MCP-compatible clients, you'll need to:
 
 ## Available Tools
 
-Once integrated, 64 tools are available, covering invoices, contacts,
-products, bank transactions, locking/actions, batch operations,
+Once integrated, 65 tools are available, covering company creation, invoices,
+contacts, products, bank transactions, locking/actions, batch operations,
 attachments, reports/QR codes, evidence metadata, labels, the
 company-wide Changes API, and business-logic tools for issued invoices
 and contacts. See the [Features section of the README](README.md#features)
@@ -191,7 +191,14 @@ for the full, categorized list.
    - Ensure `.env` files are in `.gitignore`
    - Set proper file permissions (600) on `.env` files
 
-3. **Network Security**
+3. **Company creation (`company_create`)**
+   - This tool acts at the AbraFlexi server level, not on the single
+     company configured via `ABRAFLEXI_COMPANY` - it requires a REST user
+     with server-admin/license-level rights, not just per-company access.
+   - If the configured credentials lack those rights, the tool fails with
+     a clear error instead of silently assuming elevated permissions.
+
+4. **Network Security**
    - Use HTTPS for AbraFlexi connections
    - For HTTP transport, use localhost only or secure the connection
    - Consider using VPN for remote AbraFlexi access
