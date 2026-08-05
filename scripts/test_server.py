@@ -31,7 +31,8 @@ from python_abraflexi import ReadOnly, ReadWrite
 
 def _get_tools(mcp_instance):
     """Get tools dict from FastMCP using the public async API."""
-    return asyncio.run(mcp_instance.get_tools())
+    tools = asyncio.run(mcp_instance.list_tools())
+    return {tool.name: tool for tool in tools}
 
 
 def test_connection():
