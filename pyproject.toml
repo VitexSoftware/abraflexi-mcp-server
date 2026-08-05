@@ -1,6 +1,6 @@
 [project]
 name = "abraflexi-mcp-server"
-version = "1.2.3"
+version = "1.2.4"
 description = "A comprehensive MCP server for AbraFlexi integration"
 readme = "README.md"
 license = {text = "MIT"}

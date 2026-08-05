@@ -1,3 +1,10 @@
+abraflexi-mcp-server (1.2.4) unstable; urgency=medium
+
+  [ Vítězslav Dvořák ]
+  * Release 1.2.4
+
+ -- vitex <info@vitexsoftware.cz>  Wed, 05 Aug 2026 18:40:49 +0200
+
 abraflexi-mcp-server (1.2.3) unstable; urgency=medium
 
   * Fix bank_transaction_create: 'castka'/'datum' were never real banka
