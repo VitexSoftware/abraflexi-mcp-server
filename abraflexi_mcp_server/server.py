@@ -82,31 +82,39 @@ def get_abraflexi_config() -> Dict[str, Any]:
     return abraflexi_config
 
 
-def get_readonly_client(evidence: str) -> ReadOnly:
+def get_readonly_client(evidence: str, company: Optional[str] = None) -> ReadOnly:
     """Create a read-only AbraFlexi client for the specified evidence.
-    
+
     Args:
         evidence: Evidence name (e.g., 'faktura-vydana', 'adresar')
-        
+        company: Company identifier (dbNazev) to query instead of the
+            server's default ABRAFLEXI_COMPANY
+
     Returns:
         ReadOnly: Configured AbraFlexi client
     """
     config = get_abraflexi_config()
     options = {**config, "evidence": evidence}
+    if company:
+        options["company"] = company
     return ReadOnly(None, options)
 
 
-def get_readwrite_client(evidence: str) -> ReadWrite:
+def get_readwrite_client(evidence: str, company: Optional[str] = None) -> ReadWrite:
     """Create a read-write AbraFlexi client for the specified evidence.
-    
+
     Args:
         evidence: Evidence name (e.g., 'faktura-vydana', 'adresar')
-        
+        company: Company identifier (dbNazev) to write to instead of the
+            server's default ABRAFLEXI_COMPANY
+
     Returns:
         ReadWrite: Configured AbraFlexi client
     """
     config = get_abraflexi_config()
     options = {**config, "evidence": evidence}
+    if company:
+        options["company"] = company
     return ReadWrite(None, options)
 
 
@@ -917,7 +925,8 @@ def evidence_get(
     order: Optional[str] = None,
     order_direction: str = "A",
     add_row_count: bool = False,
-    relations: Optional[List[str]] = None
+    relations: Optional[List[str]] = None,
+    company: Optional[str] = None
 ) -> str:
     """Get records from any AbraFlexi evidence.
 
@@ -932,11 +941,14 @@ def evidence_get(
         order_direction: "A" for ascending (default) or "D" for descending
         add_row_count: Include the total number of matching records in the response
         relations: Sub-evidences to include in the response (e.g. ['polozkyFaktury'])
+        company: Company identifier (dbNazev) to query instead of the
+            server's default ABRAFLEXI_COMPANY - e.g. to read another
+            company's 'uzivatele' (user access) evidence
 
     Returns:
         str: JSON formatted list of records
     """
-    client = get_readonly_client(evidence)
+    client = get_readonly_client(evidence, company=company)
 
     # Build filter
     if ids:
@@ -961,19 +973,22 @@ def evidence_get(
 
 
 @mcp.tool()
-def evidence_create(evidence: str, data: Dict[str, Any]) -> str:
+def evidence_create(evidence: str, data: Dict[str, Any], company: Optional[str] = None) -> str:
     """Create a new record in any AbraFlexi evidence.
-    
+
     Args:
         evidence: Evidence name (e.g., 'faktura-vydana', 'adresar', 'cenik')
         data: Record data as dictionary
-        
+        company: Company identifier (dbNazev) to write to instead of the
+            server's default ABRAFLEXI_COMPANY - e.g. to grant a user
+            access by inserting into another company's 'uzivatele' evidence
+
     Returns:
         str: JSON formatted creation result
     """
     validate_read_only()
-    
-    client = get_readwrite_client(evidence)
+
+    client = get_readwrite_client(evidence, company=company)
     
     # Set all data fields
     for key, value in data.items():
@@ -993,7 +1008,8 @@ def evidence_update(
     id: Optional[str] = None,
     kod: Optional[str] = None,
     data: Optional[Dict[str, Any]] = None,
-    remove_external_ids: Optional[str] = None
+    remove_external_ids: Optional[str] = None,
+    company: Optional[str] = None
 ) -> str:
     """Update a record in any AbraFlexi evidence.
 
@@ -1005,6 +1021,8 @@ def evidence_update(
         remove_external_ids: If given, remove external identifiers starting
             with this prefix (empty string removes all of them) as part of
             the update
+        company: Company identifier (dbNazev) to write to instead of the
+            server's default ABRAFLEXI_COMPANY
 
     Returns:
         str: JSON formatted update result
@@ -1015,7 +1033,7 @@ def evidence_update(
         raise ValueError("Either id or kod must be provided")
 
     identifier = int(id) if id else f"code:{kod}"
-    client = get_readwrite_client(evidence)
+    client = get_readwrite_client(evidence, company=company)
 
     # Load existing record
     if not client.load_from_abraflexi(identifier):
@@ -1035,30 +1053,33 @@ def evidence_update(
 def evidence_delete(
     evidence: str,
     id: Optional[str] = None,
-    kod: Optional[str] = None
+    kod: Optional[str] = None,
+    company: Optional[str] = None
 ) -> str:
     """Delete a record from any AbraFlexi evidence.
-    
+
     Args:
         evidence: Evidence name (e.g., 'faktura-vydana', 'adresar', 'cenik')
         id: Record ID to delete
         kod: Record code to delete (alternative to id)
-        
+        company: Company identifier (dbNazev) to delete from instead of the
+            server's default ABRAFLEXI_COMPANY
+
     Returns:
         str: JSON formatted deletion result
     """
     validate_read_only()
-    
+
     if not id and not kod:
         raise ValueError("Either id or kod must be provided")
-    
+
     identifier = int(id) if id else f"code:{kod}"
-    client = get_readwrite_client(evidence)
-    
+    client = get_readwrite_client(evidence, company=company)
+
     # Load and delete
     if not client.load_from_abraflexi(identifier):
         raise ValueError(f"Record not found in {evidence}: {identifier}")
-    
+
     result = client.delete()
 
     return format_response({"success": result})
