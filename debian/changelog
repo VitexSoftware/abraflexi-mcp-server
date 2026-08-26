@@ -1,3 +1,12 @@
+abraflexi-mcp-server (1.4.0) unstable; urgency=medium
+
+  * Add companion package mcprack-mcp-server-abraflexi: registers
+    abraflexi-mcp-server into the local mcprack MCP catalog on install
+    (postinst) and unregisters it on removal (prerm), using the new
+    'mcprack server create'/'mcprack server delete --yes' CLI commands.
+
+ -- vitex <info@vitexsoftware.cz>  Wed, 26 Aug 2026 23:00:53 +0200
+
 abraflexi-mcp-server (1.3.0) unstable; urgency=medium
 
   [ Vítězslav Dvořák ]
