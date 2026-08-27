@@ -1,3 +1,13 @@
+abraflexi-mcp-server (1.4.3) unstable; urgency=medium
+
+  * Fix override_dh_auto_install to pass --destdir=debian/abraflexi-mcp-
+    server: without it, pybuild routed the actual Python module into an
+    unused debian/python3-abraflexi-mcp-server staging dir once a second
+    binary package existed, so 1.4.0-1.4.2 silently shipped an
+    abraflexi-mcp-server .deb missing its own code.
+
+ -- vitex <info@vitexsoftware.cz>  Thu, 27 Aug 2026 09:35:21 +0200
+
 abraflexi-mcp-server (1.4.2) unstable; urgency=medium
 
   * Bump mcprack version dependency to >= 1.5.1, the version that
