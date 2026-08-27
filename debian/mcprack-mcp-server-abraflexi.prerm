@@ -5,7 +5,7 @@ case "$1" in
   remove|deconfigure)
     if getent passwd mcprack >/dev/null 2>&1 && [ -d /usr/lib/mcprack ]; then
       su -s /bin/sh mcprack -c "cd /usr/lib/mcprack && set -a; . /etc/mcprack/env; set +a; \
-        mcprack server delete abraflexi-dev --yes" || true
+        mcprack server delete mcp-server-abraflexi --yes" || true
     fi
     ;;
 esac
