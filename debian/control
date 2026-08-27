@@ -1,4 +1,4 @@
-Source: abraflexi-mcp-server
+Source: mcp-server-abraflexi
 Section: python
 Priority: optional
 Maintainer: Vítězslav Dvořák <info@vitexsoftware.cz>
@@ -10,10 +10,11 @@ Build-Depends: debhelper (>= 10),
                python3-build,
                python3-installer
 Standards-Version: 4.5.0
-Homepage: https://github.com/VitexSoftware/abraflexi-mcp-server
-Vcs-Git: https://github.com/VitexSoftware/abraflexi-mcp-server.git
+Homepage: https://github.com/VitexSoftware/mcp-server-abraflexi
+Vcs-Git: https://github.com/VitexSoftware/mcp-server-abraflexi.git
+Vcs-Browser: https://github.com/VitexSoftware/mcp-server-abraflexi
 
-Package: abraflexi-mcp-server
+Package: mcp-server-abraflexi
 Architecture: all
 Depends: ${python3:Depends},
          ${misc:Depends},
@@ -21,6 +22,9 @@ Depends: ${python3:Depends},
          python3-fastmcp,
          python3-dotenv,
          python3-typing-inspection
+Provides: abraflexi-mcp-server
+Replaces: abraflexi-mcp-server (<< 1.4.4~)
+Breaks: abraflexi-mcp-server (<< 1.4.4~)
 Description: MCP server for AbraFlexi integration
  A comprehensive Model Context Protocol (MCP) server for AbraFlexi
  integration using FastMCP and python-abraflexi.
@@ -42,8 +46,8 @@ Package: mcprack-mcp-server-abraflexi
 Architecture: all
 Depends: ${misc:Depends},
          mcprack (>= 1.5.1),
-         abraflexi-mcp-server (= ${binary:Version})
+         mcp-server-abraflexi (= ${binary:Version})
 Description: Registers AbraFlexi MCP server into mcprack catalog
- Companion package for abraflexi-mcp-server. Installing it registers
+ Companion package for mcp-server-abraflexi. Installing it registers
  the abraflexi-mcp-server binary as an available MCP server in the
  local mcprack instance; removing it unregisters it again.

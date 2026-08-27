@@ -10,11 +10,11 @@ override_dh_auto_clean:
 	rm -rf build *.egg-info
 
 override_dh_auto_install:
-	dh_auto_install --destdir=debian/abraflexi-mcp-server
+	dh_auto_install --destdir=debian/mcp-server-abraflexi
 	# Install scripts
-	install -d debian/abraflexi-mcp-server/usr/bin
-	install -m 755 scripts/start_server.py debian/abraflexi-mcp-server/usr/bin/abraflexi-mcp-start
-	install -m 755 scripts/test_server.py debian/abraflexi-mcp-server/usr/bin/abraflexi-mcp-test
+	install -d debian/mcp-server-abraflexi/usr/bin
+	install -m 755 scripts/start_server.py debian/mcp-server-abraflexi/usr/bin/abraflexi-mcp-start
+	install -m 755 scripts/test_server.py debian/mcp-server-abraflexi/usr/bin/abraflexi-mcp-test
 	# Install example configuration
-	install -d debian/abraflexi-mcp-server/usr/share/abraflexi-mcp-server
-	install -m 644 .env.example debian/abraflexi-mcp-server/usr/share/abraflexi-mcp-server/
+	install -d debian/mcp-server-abraflexi/usr/share/abraflexi-mcp-server
+	install -m 644 .env.example debian/mcp-server-abraflexi/usr/share/abraflexi-mcp-server/
