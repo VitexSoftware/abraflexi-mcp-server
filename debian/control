@@ -41,7 +41,7 @@ Description: MCP server for AbraFlexi integration
 Package: mcprack-mcp-server-abraflexi
 Architecture: all
 Depends: ${misc:Depends},
-         mcprack (>= 1.5.0),
+         mcprack (>= 1.5.1),
          abraflexi-mcp-server (= ${binary:Version})
 Description: Registers AbraFlexi MCP server into mcprack catalog
  Companion package for abraflexi-mcp-server. Installing it registers

@@ -1,3 +1,11 @@
+abraflexi-mcp-server (1.4.2) unstable; urgency=medium
+
+  * Bump mcprack version dependency to >= 1.5.1, the version that
+    actually contains the 'server create' command (1.5.0-1 was tagged
+    without it).
+
+ -- vitex <info@vitexsoftware.cz>  Thu, 27 Aug 2026 09:18:09 +0200
+
 abraflexi-mcp-server (1.4.1) unstable; urgency=medium
 
   * Rename the mcprack catalog registration from 'abraflexi-dev' to
