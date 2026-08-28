@@ -171,7 +171,7 @@ For other MCP-compatible clients, you'll need to:
 
 ## Available Tools
 
-Once integrated, 65 tools are available, covering company creation, invoices,
+Once integrated, 67 tools are available, covering company creation, invoices,
 contacts, products, bank transactions, locking/actions, batch operations,
 attachments, reports/QR codes, evidence metadata, labels, the
 company-wide Changes API, and business-logic tools for issued invoices

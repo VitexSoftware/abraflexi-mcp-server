@@ -11,7 +11,7 @@ A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration us
 
 ## Features
 
-65 tools in total, covering the full REST surface exposed by
+67 tools in total, covering the full REST surface exposed by
 [python-abraflexi](https://github.com/VitexSoftware/python-abraflexi):
 dedicated tools for the most common evidences (invoices, contacts,
 products, bank transactions), plus generic `evidence_*` tools that work
@@ -67,6 +67,10 @@ against *any* AbraFlexi evidence by name.
 - `evidence_update` - Update record in any evidence (supports `remove_external_ids`)
 - `evidence_delete` - Delete record from any evidence
 - `evidence_list` - List all available evidences
+
+### 🧠 Python-abraflexi Bridge
+- `abraflexi_client_methods` - List public methods of core python-abraflexi clients (`ReadOnly`, `ReadWrite`, `Changes`, `Adresar`, `FakturaVydana`)
+- `abraflexi_client_call` - Invoke a selected public client method with arguments (write methods still respect `READ_ONLY`)
 
 ### 🔒 Locking, Actions & Batch Operations
 - `evidence_lock` / `evidence_unlock` / `evidence_lock_for_ucetni` - Lock/unlock a record
@@ -274,6 +278,16 @@ invoice_issued_get(limit=10)
 **Get specific invoice by code:**
 ```python
 invoice_issued_get(kod="INV-2024-001")
+```
+
+**Count invoices issued in August 2026 (without downloading full records):**
+```python
+invoice_issued_get(
+    datum_vystaveni_od="2026-08-01",
+    datum_vystaveni_do="2026-08-31",
+    detail="id",
+    add_row_count=True
+)
 ```
 
 **Create a new contact:**

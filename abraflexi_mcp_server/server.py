@@ -14,6 +14,8 @@ import argparse
 import os
 import json
 import logging
+import base64
+import inspect
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 from fastmcp import FastMCP
@@ -167,6 +169,111 @@ def format_response(data: Any) -> str:
     return json.dumps(data, indent=2, default=str, ensure_ascii=False)
 
 
+def _serialize_result(data: Any) -> Any:
+    """Serialize method-call results to JSON-safe values."""
+    if isinstance(data, bytes):
+        return {
+            "type": "bytes_base64",
+            "size_bytes": len(data),
+            "data": base64.b64encode(data).decode("ascii"),
+        }
+    if isinstance(data, list):
+        return [_serialize_result(item) for item in data]
+    if isinstance(data, dict):
+        return {str(key): _serialize_result(value) for key, value in data.items()}
+    return data
+
+
+def _build_client_options(
+    evidence: Optional[str] = None,
+    company: Optional[str] = None,
+    extra_options: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Build options for python-abraflexi client initialization."""
+    options = dict(get_abraflexi_config())
+    if company:
+        options["company"] = company
+    if evidence:
+        options["evidence"] = evidence
+    if extra_options:
+        options.update(extra_options)
+    return options
+
+
+def _public_methods_for_class(cls: Any) -> List[str]:
+    """Return sorted public callable method names for a class."""
+    methods = []
+    for name in dir(cls):
+        if name.startswith("_"):
+            continue
+        attr = getattr(cls, name, None)
+        if callable(attr):
+            methods.append(name)
+    return sorted(set(methods))
+
+
+CLIENT_CLASS_MAP: Dict[str, Any] = {
+    "ReadOnly": ReadOnly,
+    "ReadWrite": ReadWrite,
+    "Changes": Changes,
+    "Adresar": Adresar,
+    "FakturaVydana": FakturaVydana,
+}
+
+
+WRITE_METHOD_NAMES = {
+    "insert_to_abraflexi",
+    "update",
+    "delete",
+    "save",
+    "perform_action",
+    "copy",
+    "lock",
+    "unlock",
+    "lock_for_ucetni",
+    "storno",
+    "mass_update",
+    "set_atomic",
+    "set_dry_run",
+    "batch_insert",
+    "batch_update",
+    "add_attachment",
+    "add_attachment_from_file",
+    "delete_attachment",
+    "set_label",
+    "unset_label",
+    "unset_labels",
+    "set_sub_items",
+    "add_array_to_branch",
+    "match_payment",
+    "cash_payment",
+    "deduct_advance",
+    "deduct_zdd",
+    "link_zdd",
+    "unlink_zdd",
+    "enable",
+    "disable",
+}
+
+
+def _instantiate_client(
+    client_class: str,
+    init: Optional[Union[int, str, Dict[str, Any]]] = None,
+    evidence: Optional[str] = None,
+    company: Optional[str] = None,
+    extra_options: Optional[Dict[str, Any]] = None,
+) -> Any:
+    """Instantiate one of the supported python-abraflexi clients."""
+    if client_class not in CLIENT_CLASS_MAP:
+        raise ValueError(
+            f"Unsupported client_class '{client_class}'. Supported: {', '.join(CLIENT_CLASS_MAP.keys())}"
+        )
+
+    cls = CLIENT_CLASS_MAP[client_class]
+    options = _build_client_options(evidence=evidence, company=company, extra_options=extra_options)
+    return cls(init, options)
+
+
 def validate_read_only() -> None:
     """Validate that write operations are allowed.
     
@@ -182,16 +289,24 @@ def validate_read_only() -> None:
 def invoice_issued_get(
     ids: Optional[List[str]] = None,
     kod: Optional[str] = None,
+    datum_vystaveni_od: Optional[str] = None,
+    datum_vystaveni_do: Optional[str] = None,
+    filter_expr: Optional[str] = None,
     limit: Optional[int] = None,
-    detail: str = "summary"
+    detail: str = "summary",
+    add_row_count: bool = False
 ) -> str:
     """Get issued invoices (faktura-vydana) from AbraFlexi.
     
     Args:
         ids: List of invoice IDs to retrieve
         kod: Invoice code to search for
+        datum_vystaveni_od: Lower bound for issue date (YYYY-MM-DD, inclusive)
+        datum_vystaveni_do: Upper bound for issue date (YYYY-MM-DD, inclusive)
+        filter_expr: Additional AbraFlexi filter expression to combine with built-in filters
         limit: Maximum number of results
         detail: Detail level (summary, id, full, custom:field1,field2)
+        add_row_count: Include the total number of matching records in the response
         
     Returns:
         str: JSON formatted list of invoices
@@ -204,6 +319,12 @@ def invoice_issued_get(
         filters.append(f"id in ({','.join(ids)})")
     if kod:
         filters.append(f"kod='{kod}'")
+    if datum_vystaveni_od:
+        filters.append(f"datVyst >= '{datum_vystaveni_od}'")
+    if datum_vystaveni_do:
+        filters.append(f"datVyst <= '{datum_vystaveni_do}'")
+    if filter_expr:
+        filters.append(f"({filter_expr})")
     
     if filters:
         client.filter = " AND ".join(filters)
@@ -211,6 +332,8 @@ def invoice_issued_get(
     client.default_url_params["detail"] = detail
     if limit:
         client.default_url_params["limit"] = limit
+    if add_row_count:
+        client.set_add_row_count(True)
     
     result = client.get_all_from_abraflexi()
     return format_response(result)
@@ -2298,6 +2421,118 @@ def contact_get_bank_accounts(id: Optional[str] = None, kod: Optional[str] = Non
     contact = get_adresar_client(identifier)
 
     return format_response(contact.get_bank_account_number())
+
+
+@mcp.tool()
+def abraflexi_client_methods(client_class: Optional[str] = None, include_signatures: bool = True) -> str:
+    """List public python-abraflexi methods available via bridge calls.
+
+    Args:
+        client_class: Optional class name to narrow results
+            (ReadOnly, ReadWrite, Changes, Adresar, FakturaVydana)
+        include_signatures: Include Python signatures and one-line docs
+
+    Returns:
+        str: JSON formatted list of methods grouped by class
+    """
+    if client_class and client_class not in CLIENT_CLASS_MAP:
+        raise ValueError(
+            f"Unsupported client_class '{client_class}'. Supported: {', '.join(CLIENT_CLASS_MAP.keys())}"
+        )
+
+    classes = [client_class] if client_class else list(CLIENT_CLASS_MAP.keys())
+    result: Dict[str, Any] = {}
+
+    for class_name in classes:
+        cls = CLIENT_CLASS_MAP[class_name]
+        methods = _public_methods_for_class(cls)
+        if not include_signatures:
+            result[class_name] = methods
+            continue
+
+        detailed = []
+        for method_name in methods:
+            fn = getattr(cls, method_name)
+            try:
+                signature = str(inspect.signature(fn))
+            except Exception:
+                signature = "(signature unavailable)"
+            doc = (inspect.getdoc(fn) or "").splitlines()
+            doc_first_line = doc[0] if doc else ""
+            detailed.append({
+                "name": method_name,
+                "signature": signature,
+                "doc": doc_first_line,
+                "write_method": method_name in WRITE_METHOD_NAMES,
+            })
+        result[class_name] = detailed
+
+    return format_response(result)
+
+
+@mcp.tool()
+def abraflexi_client_call(
+    client_class: str,
+    method: str,
+    init: Optional[Union[int, str, Dict[str, Any]]] = None,
+    evidence: Optional[str] = None,
+    company: Optional[str] = None,
+    method_args: Optional[List[Any]] = None,
+    method_kwargs: Optional[Dict[str, Any]] = None,
+    extra_options: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Call a public python-abraflexi client method through MCP.
+
+    This bridge tool is intended for advanced workflows not yet covered by
+    dedicated MCP wrappers.
+
+    Args:
+        client_class: One of ReadOnly, ReadWrite, Changes, Adresar, FakturaVydana
+        method: Public method name on the selected client class
+        init: Optional record selector or initial data passed to constructor
+        evidence: Evidence name (used mainly with ReadOnly/ReadWrite)
+        company: Optional company override (dbNazev)
+        method_args: Positional arguments for the method call
+        method_kwargs: Keyword arguments for the method call
+        extra_options: Additional constructor options for the client
+
+    Returns:
+        str: JSON formatted result and runtime metadata
+    """
+    if method.startswith("_"):
+        raise ValueError("Private methods are not allowed")
+
+    client = _instantiate_client(
+        client_class=client_class,
+        init=init,
+        evidence=evidence,
+        company=company,
+        extra_options=extra_options,
+    )
+
+    if not hasattr(client, method):
+        raise ValueError(f"Method '{method}' not found on {client_class}")
+
+    fn = getattr(client, method)
+    if not callable(fn):
+        raise ValueError(f"Attribute '{method}' on {client_class} is not callable")
+
+    if method in WRITE_METHOD_NAMES:
+        validate_read_only()
+
+    args = method_args or []
+    kwargs = method_kwargs or {}
+    result = fn(*args, **kwargs)
+
+    return format_response({
+        "client_class": client_class,
+        "method": method,
+        "result": _serialize_result(result),
+        "last_response_code": getattr(client, "last_response_code", None),
+        "row_count": getattr(client, "row_count", None),
+        "global_version": getattr(client, "global_version", None),
+        "errors": getattr(client, "errors", None),
+    })
 
 
 @mcp.tool()
