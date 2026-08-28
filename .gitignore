@@ -64,6 +64,15 @@ debian/abraflexi-mcp-server.postinst.debhelper
 debian/debhelper-build-stamp
 debian/abraflexi-mcp-server.prerm.debhelper
 
+debian/mcp-server-abraflexi.postinst.debhelper
+debian/mcp-server-abraflexi.prerm.debhelper
+debian/mcp-server-abraflexi.substvars
+debian/mcp-server-abraflexi/
+debian/mcprack-mcp-server-abraflexi.substvars
+debian/mcprack-mcp-server-abraflexi/
+
+
+
 # AppImage
 build/appimage/
 *.AppImage

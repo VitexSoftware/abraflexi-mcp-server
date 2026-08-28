@@ -1,11 +1,11 @@
 # AbraFlexi MCP Server
-![Packaging: deb](https://img.shields.io/badge/packaging-.deb-red?logo=debian&logoColor=white)
 
 <img src="debian/abraflexi-mcp-server.svg" alt="AbraFlexi MCP Server icon" width="96" height="96">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://badge.fury.io/py/abraflexi-mcp-server.svg)](https://badge.fury.io/py/abraflexi-mcp-server)
+![Packaging: deb](https://img.shields.io/badge/packaging-.deb-red?logo=debian&logoColor=white)
 
 A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration using FastMCP and python-abraflexi. This server provides complete access to AbraFlexi REST API functionality through MCP-compatible tools.
 
