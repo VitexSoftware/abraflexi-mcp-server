@@ -34,7 +34,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Initialize FastMCP
-mcp = FastMCP("AbraFlexi MCP Server")
+mcp = FastMCP(
+    "AbraFlexi MCP Server",
+    instructions=(
+        "This server is bound to exactly one AbraFlexi company for its entire "
+        "process lifetime, set via the ABRAFLEXI_URL/ABRAFLEXI_COMPANY environment "
+        "variables. Call the server_info tool to learn which company/URL this is. "
+        "Every record returned by other tools (invoices, contacts, products, bank "
+        "transactions, ...) already belongs to that one company by construction — "
+        "it is never necessary or possible to ask this server for another company's "
+        "data. Watch out for record fields that name a counterparty (e.g. an "
+        "invoice's customer/supplier) — those describe the other party in the "
+        "transaction, not the company this server is bound to."
+    ),
+)
 
 # Global configuration
 abraflexi_config: Optional[Dict[str, Any]] = None
@@ -82,6 +95,28 @@ def get_abraflexi_config() -> Dict[str, Any]:
         logger.info("Successfully configured AbraFlexi connection")
     
     return abraflexi_config
+
+
+@mcp.tool()
+def server_info() -> str:
+    """Report which AbraFlexi company/instance this MCP server session is bound to.
+
+    This server is bound to exactly one AbraFlexi company for its whole process
+    lifetime (configured via ABRAFLEXI_URL/ABRAFLEXI_COMPANY). Every other tool's
+    results already belong to this company by construction. Call this tool first
+    whenever the identity of "the company" matters to the request (e.g. "how many
+    invoices did company X issue"), instead of trying to infer it from record
+    fields such as an invoice's customer/supplier name.
+
+    Returns:
+        str: JSON object with abraflexi_url, company, and read_only.
+    """
+    config = get_abraflexi_config()
+    return format_response({
+        "abraflexi_url": config["url"],
+        "company": config["company"],
+        "read_only": is_read_only(),
+    })
 
 
 def get_readonly_client(evidence: str, company: Optional[str] = None) -> ReadOnly:
@@ -167,6 +202,45 @@ def format_response(data: Any) -> str:
     if isinstance(data, bool):
         return json.dumps({"success": data})
     return json.dumps(data, indent=2, default=str, ensure_ascii=False)
+
+
+def format_records_response(
+    data: Any,
+    record_note: Optional[str] = None,
+    company: Optional[str] = None,
+) -> str:
+    """Format a multi-record evidence response, wrapped with company context.
+
+    Wraps the raw AbraFlexi records with a `_context` block naming which
+    AbraFlexi company/URL the records were queried from, so the caller
+    never has to infer whose data it is looking at from record fields.
+
+    Args:
+        data: Raw records (list or dict) from python-abraflexi
+        record_note: Optional short note about field semantics for this
+            evidence type (e.g. clarifying that a counterparty field is not
+            the bound company)
+        company: Company identifier the records were actually queried from,
+            if it differs from the server's default ABRAFLEXI_COMPANY (e.g.
+            evidence_get's optional company override)
+
+    Returns:
+        str: JSON formatted string with a _context envelope
+    """
+    config = get_abraflexi_config()
+    return json.dumps(
+        {
+            "_context": {
+                "abraflexi_company": company or config["company"],
+                "abraflexi_url": config["url"],
+                "note": record_note,
+            },
+            "records": data,
+        },
+        indent=2,
+        default=str,
+        ensure_ascii=False,
+    )
 
 
 def _serialize_result(data: Any) -> Any:
@@ -297,7 +371,12 @@ def invoice_issued_get(
     add_row_count: bool = False
 ) -> str:
     """Get issued invoices (faktura-vydana) from AbraFlexi.
-    
+
+    Every invoice returned was issued BY the AbraFlexi company this server is
+    bound to (see server_info) - there is no way to query another company's
+    invoices from this server. The 'nazFirmy'/'firma' fields on each record
+    identify the CUSTOMER/counterparty being invoiced, not the issuer.
+
     Args:
         ids: List of invoice IDs to retrieve
         kod: Invoice code to search for
@@ -307,9 +386,10 @@ def invoice_issued_get(
         limit: Maximum number of results
         detail: Detail level (summary, id, full, custom:field1,field2)
         add_row_count: Include the total number of matching records in the response
-        
+
     Returns:
-        str: JSON formatted list of invoices
+        str: JSON object with a _context block (bound company/URL) and a
+            records list of invoices
     """
     client = get_readonly_client("faktura-vydana")
     
@@ -336,7 +416,15 @@ def invoice_issued_get(
         client.set_add_row_count(True)
     
     result = client.get_all_from_abraflexi()
-    return format_response(result)
+    return format_records_response(
+        result,
+        record_note=(
+            "All invoices below were issued by the AbraFlexi company this "
+            "server is bound to (see abraflexi_company above / server_info "
+            "tool). 'nazFirmy'/'firma' identify the customer/counterparty "
+            "being invoiced, not the issuer."
+        ),
+    )
 
 
 @mcp.tool()
@@ -462,15 +550,22 @@ def invoice_received_get(
     detail: str = "summary"
 ) -> str:
     """Get received invoices (faktura-prijata) from AbraFlexi.
-    
+
+    Every invoice returned was received BY the AbraFlexi company this server
+    is bound to (see server_info) - there is no way to query another
+    company's received invoices from this server. The 'nazFirmy'/'firma'
+    fields on each record identify the SUPPLIER/counterparty who issued the
+    invoice, not the receiving company.
+
     Args:
         ids: List of invoice IDs to retrieve
         kod: Invoice code to search for
         limit: Maximum number of results
         detail: Detail level (summary, id, full, custom:field1,field2)
-        
+
     Returns:
-        str: JSON formatted list of invoices
+        str: JSON object with a _context block (bound company/URL) and a
+            records list of invoices
     """
     client = get_readonly_client("faktura-prijata")
     
@@ -489,7 +584,15 @@ def invoice_received_get(
         client.default_url_params["limit"] = limit
     
     result = client.get_all_from_abraflexi()
-    return format_response(result)
+    return format_records_response(
+        result,
+        record_note=(
+            "All invoices below were received by the AbraFlexi company this "
+            "server is bound to (see abraflexi_company above / server_info "
+            "tool). 'nazFirmy'/'firma' identify the supplier/counterparty "
+            "who issued the invoice, not the receiving company."
+        ),
+    )
 
 
 @mcp.tool()
@@ -633,16 +736,22 @@ def contact_get(
     detail: str = "summary"
 ) -> str:
     """Get contacts/companies (adresar) from AbraFlexi.
-    
+
+    These are address-book entries (customers, suppliers, other contacts)
+    belonging to the AbraFlexi company this server is bound to (see
+    server_info) - they are business partners of that company, not the
+    company itself.
+
     Args:
         ids: List of contact IDs to retrieve
         kod: Contact code to search for
         nazev: Contact name to search for (partial match)
         limit: Maximum number of results
         detail: Detail level (summary, id, full, custom:field1,field2)
-        
+
     Returns:
-        str: JSON formatted list of contacts
+        str: JSON object with a _context block (bound company/URL) and a
+            records list of contacts
     """
     client = get_readonly_client("adresar")
     
@@ -666,7 +775,15 @@ def contact_get(
         client.default_url_params["limit"] = limit
     
     result = client.get_all_from_abraflexi()
-    return format_response(result)
+    return format_records_response(
+        result,
+        record_note=(
+            "All contacts below are address-book entries (business "
+            "partners) of the AbraFlexi company this server is bound to "
+            "(see abraflexi_company above / server_info tool), not the "
+            "company itself."
+        ),
+    )
 
 
 @mcp.tool()
@@ -792,16 +909,20 @@ def product_get(
     detail: str = "summary"
 ) -> str:
     """Get products (cenik) from AbraFlexi.
-    
+
+    These are price-list entries belonging to the AbraFlexi company this
+    server is bound to (see server_info).
+
     Args:
         ids: List of product IDs to retrieve
         kod: Product code to search for
         nazev: Product name to search for (partial match)
         limit: Maximum number of results
         detail: Detail level (summary, id, full, custom:field1,field2)
-        
+
     Returns:
-        str: JSON formatted list of products
+        str: JSON object with a _context block (bound company/URL) and a
+            records list of products
     """
     client = get_readonly_client("cenik")
     
@@ -825,7 +946,14 @@ def product_get(
         client.default_url_params["limit"] = limit
     
     result = client.get_all_from_abraflexi()
-    return format_response(result)
+    return format_records_response(
+        result,
+        record_note=(
+            "All products below belong to the price list of the AbraFlexi "
+            "company this server is bound to (see abraflexi_company above / "
+            "server_info tool)."
+        ),
+    )
 
 
 @mcp.tool()
@@ -945,27 +1073,38 @@ def bank_transaction_get(
     detail: str = "summary"
 ) -> str:
     """Get bank transactions (banka) from AbraFlexi.
-    
+
+    These are bank transactions belonging to the AbraFlexi company this
+    server is bound to (see server_info).
+
     Args:
         ids: List of transaction IDs to retrieve
         limit: Maximum number of results
         detail: Detail level (summary, id, full, custom:field1,field2)
-        
+
     Returns:
-        str: JSON formatted list of bank transactions
+        str: JSON object with a _context block (bound company/URL) and a
+            records list of bank transactions
     """
     client = get_readonly_client("banka")
-    
+
     # Build filter
     if ids:
         client.filter = f"id in ({','.join(ids)})"
-    
+
     client.default_url_params["detail"] = detail
     if limit:
         client.default_url_params["limit"] = limit
-    
+
     result = client.get_all_from_abraflexi()
-    return format_response(result)
+    return format_records_response(
+        result,
+        record_note=(
+            "All transactions below belong to the AbraFlexi company this "
+            "server is bound to (see abraflexi_company above / server_info "
+            "tool)."
+        ),
+    )
 
 
 @mcp.tool()
@@ -1069,7 +1208,9 @@ def evidence_get(
             company's 'uzivatele' (user access) evidence
 
     Returns:
-        str: JSON formatted list of records
+        str: JSON object with a _context block (the company actually
+            queried - the override above, or the server's bound default -
+            plus its URL) and a records list
     """
     client = get_readonly_client(evidence, company=company)
 
@@ -1092,7 +1233,15 @@ def evidence_get(
         client.set_relations(*relations)
 
     result = client.get_all_from_abraflexi()
-    return format_response(result)
+    return format_records_response(
+        result,
+        record_note=(
+            "Records below belong to the AbraFlexi company named in "
+            "abraflexi_company above (the 'company' override if given, "
+            "otherwise the server's bound default - see server_info)."
+        ),
+        company=company,
+    )
 
 
 @mcp.tool()
@@ -2048,6 +2197,9 @@ def changes_get(
     """Get a page of company-wide recorded changes (Changes API), for
     incremental synchronization of external systems.
 
+    Changes are scoped to the AbraFlexi company this server is bound to
+    (see server_info).
+
     Args:
         start: Global version to start listing from (inclusive); defaults to
             the beginning of tracked history
@@ -2055,12 +2207,19 @@ def changes_get(
         evidences: Restrict the listing to these evidence names
 
     Returns:
-        str: JSON formatted page with 'changes', 'next' and 'global_version'
+        str: JSON object with a _context block (bound company/URL) and a
+            records page containing 'changes', 'next' and 'global_version'
     """
     config = get_abraflexi_config()
     client = Changes(None, config)
     result = client.get_changes(start=start, limit=limit, evidences=evidences)
-    return format_response(result)
+    return format_records_response(
+        result,
+        record_note=(
+            "This change page belongs to the AbraFlexi company this server "
+            "is bound to (see abraflexi_company above / server_info tool)."
+        ),
+    )
 
 
 # ISSUED INVOICE BUSINESS LOGIC (FakturaVydana)

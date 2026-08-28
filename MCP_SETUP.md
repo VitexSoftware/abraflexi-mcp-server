@@ -71,6 +71,11 @@ This guide explains how to integrate the AbraFlexi MCP Server with MCP-compatibl
    - Update the environment variables with your AbraFlexi credentials
    - Keep `READ_ONLY: "true"` for safety (change to `"false"` only if needed)
    - For source installation, replace `/path/to/` with your actual installation path
+   - `ABRAFLEXI_COMPANY` binds the whole running server to that one company -
+     every tool call talks only to it. If an assistant needs to know which
+     company it is talking to (e.g. "how many invoices did company X
+     issue"), it should call the `server_info` tool rather than guessing
+     from record fields like an invoice's customer/supplier name.
 
 3. **Alternative: Using .env File**
 
@@ -171,7 +176,7 @@ For other MCP-compatible clients, you'll need to:
 
 ## Available Tools
 
-Once integrated, 67 tools are available, covering company creation, invoices,
+Once integrated, 68 tools are available, covering server identity, company creation, invoices,
 contacts, products, bank transactions, locking/actions, batch operations,
 attachments, reports/QR codes, evidence metadata, labels, the
 company-wide Changes API, and business-logic tools for issued invoices

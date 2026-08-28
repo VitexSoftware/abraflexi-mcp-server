@@ -262,7 +262,12 @@ def test_helpers():
     print("=" * 60)
     print()
 
-    from abraflexi_mcp_server.server import format_response, is_read_only, mcp
+    from abraflexi_mcp_server.server import (
+        format_response,
+        format_records_response,
+        is_read_only,
+        mcp,
+    )
 
     # format_response: bool
     result = format_response(True)
@@ -310,6 +315,20 @@ def test_helpers():
     assert isinstance(el_result, list) and len(el_result) > 0
     assert all("name" in e and "description" in e for e in el_result)
     print(f"   \u2713 evidence_list() returns {len(el_result)} evidences with name+description")
+
+    # server_info reports which AbraFlexi company/URL this server is bound to
+    server_info_fn = tools["server_info"].fn
+    si_result = json.loads(server_info_fn())
+    assert "abraflexi_url" in si_result and "company" in si_result and "read_only" in si_result
+    print(f"   \u2713 server_info() reports company={si_result['company']!r}")
+
+    # format_records_response wraps records with a _context envelope
+    result = format_records_response([{"a": 1}], record_note="note")
+    parsed = json.loads(result)
+    assert parsed["records"] == [{"a": 1}]
+    assert parsed["_context"]["abraflexi_company"] == si_result["company"]
+    assert parsed["_context"]["note"] == "note"
+    print("   \u2713 format_records_response() wraps records with a _context envelope")
 
     print()
     print("\u2705 All helper function tests passed!")
@@ -405,6 +424,7 @@ def test_mcp_tools():
         print()
 
         expected_tools = [
+            "server_info",
             "company_create",
             "invoice_issued_get", "invoice_issued_create",
             "invoice_issued_update", "invoice_issued_delete",

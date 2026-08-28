@@ -11,11 +11,27 @@ A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration us
 
 ## Features
 
-67 tools in total, covering the full REST surface exposed by
+68 tools in total, covering the full REST surface exposed by
 [python-abraflexi](https://github.com/VitexSoftware/python-abraflexi):
 dedicated tools for the most common evidences (invoices, contacts,
 products, bank transactions), plus generic `evidence_*` tools that work
 against *any* AbraFlexi evidence by name.
+
+> **One server process = one AbraFlexi company.** A running server is bound
+> for its whole lifetime to a single company, set via
+> `ABRAFLEXI_URL`/`ABRAFLEXI_COMPANY` (see [Configuration](#configuration)).
+> Every record any tool returns already belongs to that company - it is not
+> possible to ask this server for another company's data. Call `server_info`
+> to check which company/URL a running server is bound to; the main
+> record-fetching tools (`invoice_issued_get`, `invoice_received_get`,
+> `contact_get`, `product_get`, `bank_transaction_get`, `evidence_get`,
+> `changes_get`) also echo it back in a `_context` block on every response,
+> together with a note clarifying any counterparty fields on the records
+> (e.g. an invoice's `nazFirmy` is the customer/supplier, not the company
+> that issued/received it).
+
+### ℹ️ Server Identity
+- `server_info` - Report which AbraFlexi company/URL this server session is bound to
 
 ### 📄 Invoice Management
 - `invoice_issued_get` - Retrieve issued invoices (faktura-vydana)
