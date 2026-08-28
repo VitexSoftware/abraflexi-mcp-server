@@ -1,3 +1,11 @@
+mcp-server-abraflexi (1.5.0) unstable; urgency=medium
+
+  * Add server_info tool and company-context envelope on evidence
+    responses, so an assistant can no longer confuse a record's
+    counterparty for the company this server is bound to.
+
+ -- vitex <info@vitexsoftware.cz>  Fri, 28 Aug 2026 17:23:01 +0200
+
 mcp-server-abraflexi (1.4.4) unstable; urgency=medium
 
   * Rename source/binary package from abraflexi-mcp-server to
