@@ -97,7 +97,7 @@ def get_abraflexi_config() -> Dict[str, Any]:
     return abraflexi_config
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def server_info() -> str:
     """Report which AbraFlexi company/instance this MCP server session is bound to.
 
@@ -359,7 +359,7 @@ def validate_read_only() -> None:
 
 
 # ISSUED INVOICES (Faktura Vydaná)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def invoice_issued_get(
     ids: Optional[List[str]] = None,
     kod: Optional[str] = None,
@@ -427,7 +427,7 @@ def invoice_issued_get(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def invoice_issued_create(
     kod: str,
     firma: str,
@@ -475,7 +475,7 @@ def invoice_issued_create(
     })
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def invoice_issued_update(
     id: Optional[str] = None,
     kod: Optional[str] = None,
@@ -513,7 +513,7 @@ def invoice_issued_update(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def invoice_issued_delete(id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Delete an issued invoice from AbraFlexi.
     
@@ -542,7 +542,7 @@ def invoice_issued_delete(id: Optional[str] = None, kod: Optional[str] = None) -
 
 
 # RECEIVED INVOICES (Faktura Přijatá)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def invoice_received_get(
     ids: Optional[List[str]] = None,
     kod: Optional[str] = None,
@@ -595,7 +595,7 @@ def invoice_received_get(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def invoice_received_create(
     kod: str,
     firma: str,
@@ -644,7 +644,7 @@ def invoice_received_create(
 
 
 # COMPANY MANAGEMENT (founding new accounting units)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def company_create(
     name: str,
     country: str = "CZ",
@@ -727,7 +727,7 @@ def company_create(
 
 
 # CONTACTS/COMPANIES (Adresář)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def contact_get(
     ids: Optional[List[str]] = None,
     kod: Optional[str] = None,
@@ -786,7 +786,7 @@ def contact_get(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def contact_create(
     kod: str,
     nazev: str,
@@ -833,7 +833,7 @@ def contact_create(
     })
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def contact_update(
     id: Optional[str] = None,
     kod: Optional[str] = None,
@@ -871,7 +871,7 @@ def contact_update(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def contact_delete(id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Delete a contact/company from AbraFlexi.
     
@@ -900,7 +900,7 @@ def contact_delete(id: Optional[str] = None, kod: Optional[str] = None) -> str:
 
 
 # PRODUCTS (Ceník)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def product_get(
     ids: Optional[List[str]] = None,
     kod: Optional[str] = None,
@@ -956,7 +956,7 @@ def product_get(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def product_create(
     kod: str,
     nazev: str,
@@ -999,7 +999,7 @@ def product_create(
     })
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def product_update(
     id: Optional[str] = None,
     kod: Optional[str] = None,
@@ -1037,7 +1037,7 @@ def product_update(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def product_delete(id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Delete a product from AbraFlexi.
     
@@ -1066,7 +1066,7 @@ def product_delete(id: Optional[str] = None, kod: Optional[str] = None) -> str:
 
 
 # BANK TRANSACTIONS (Banka)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def bank_transaction_get(
     ids: Optional[List[str]] = None,
     limit: Optional[int] = None,
@@ -1107,7 +1107,7 @@ def bank_transaction_get(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def bank_transaction_create(
     kod: str,
     banka: str,
@@ -1176,7 +1176,7 @@ def bank_transaction_create(
 
 
 # GENERIC EVIDENCE OPERATIONS
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get(
     evidence: str,
     ids: Optional[List[str]] = None,
@@ -1244,7 +1244,7 @@ def evidence_get(
     )
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def evidence_create(evidence: str, data: Dict[str, Any], company: Optional[str] = None) -> str:
     """Create a new record in any AbraFlexi evidence.
 
@@ -1274,7 +1274,7 @@ def evidence_create(evidence: str, data: Dict[str, Any], company: Optional[str] 
     })
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_update(
     evidence: str,
     id: Optional[str] = None,
@@ -1321,7 +1321,7 @@ def evidence_update(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def evidence_delete(
     evidence: str,
     id: Optional[str] = None,
@@ -1357,7 +1357,7 @@ def evidence_delete(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def evidence_attach_file(
     evidence: str,
     filepath: str,
@@ -1395,7 +1395,7 @@ def evidence_attach_file(
 
 
 # ACTIONS, LOCKING & BATCH OPERATIONS
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_lock(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Lock a record in any AbraFlexi evidence, preventing further changes until unlocked.
 
@@ -1423,7 +1423,7 @@ def evidence_lock(evidence: str, id: Optional[str] = None, kod: Optional[str] = 
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_unlock(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Unlock a record in any AbraFlexi evidence.
 
@@ -1451,7 +1451,7 @@ def evidence_unlock(evidence: str, id: Optional[str] = None, kod: Optional[str] 
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_lock_for_ucetni(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Lock a record in any AbraFlexi evidence for the accountant (lock-for-ucetni).
 
@@ -1479,7 +1479,7 @@ def evidence_lock_for_ucetni(evidence: str, id: Optional[str] = None, kod: Optio
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def evidence_storno(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Cancel (storno) a document record in any AbraFlexi evidence.
 
@@ -1507,7 +1507,7 @@ def evidence_storno(evidence: str, id: Optional[str] = None, kod: Optional[str] 
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False, "openWorldHint": True})
 def evidence_perform_action(
     evidence: str,
     action: str,
@@ -1545,7 +1545,7 @@ def evidence_perform_action(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_mass_update(
     evidence: str,
     filter_expr: str,
@@ -1573,7 +1573,7 @@ def evidence_mass_update(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def evidence_batch_insert(
     evidence: str,
     records: List[Dict[str, Any]],
@@ -1605,7 +1605,7 @@ def evidence_batch_insert(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_batch_update(
     evidence: str,
     records: List[Dict[str, Any]],
@@ -1638,7 +1638,7 @@ def evidence_batch_update(
 
 
 # ATTACHMENTS (listing, metadata, download, thumbnail, delete)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_list_attachments(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """List attachments (prilohy) of a record in any AbraFlexi evidence.
 
@@ -1664,7 +1664,7 @@ def evidence_list_attachments(evidence: str, id: Optional[str] = None, kod: Opti
     return format_response(result)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_attachment(
     evidence: str,
     attachment_id: str,
@@ -1696,7 +1696,7 @@ def evidence_get_attachment(
     return format_response(result)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_download_attachment(
     evidence: str,
     attachment_id: str,
@@ -1735,7 +1735,7 @@ def evidence_download_attachment(
     return format_response({"success": True, "path": output_path, "size_bytes": len(content)})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_attachment_thumbnail(
     evidence: str,
     attachment_id: str,
@@ -1778,7 +1778,7 @@ def evidence_get_attachment_thumbnail(
     return format_response({"success": True, "path": output_path, "size_bytes": len(content)})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def evidence_delete_attachment(
     evidence: str,
     attachment_id: str,
@@ -1813,7 +1813,7 @@ def evidence_delete_attachment(
 
 
 # REPORTS, QR CODES & USER QUERIES
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_export_report(
     evidence: str,
     output_path: str,
@@ -1864,7 +1864,7 @@ def evidence_export_report(
     return format_response({"success": True, "path": output_path, "size_bytes": len(content)})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_qr_code(
     evidence: str,
     id: Optional[str] = None,
@@ -1907,7 +1907,7 @@ def evidence_get_qr_code(
     return format_response({"success": bool(data_uri), "data_uri": data_uri})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def call_user_query(
     query_id: str,
     params: Optional[Dict[str, Any]] = None,
@@ -1931,7 +1931,7 @@ def call_user_query(
 
 
 # EVIDENCE METADATA & SUMMATION
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_properties(evidence: str) -> str:
     """Get the list of properties (fields) supported by an evidence.
 
@@ -1946,7 +1946,7 @@ def evidence_get_properties(evidence: str) -> str:
     return format_response(result)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_reports(evidence: str) -> str:
     """Get the list of printable reports available for an evidence.
 
@@ -1961,7 +1961,7 @@ def evidence_get_reports(evidence: str) -> str:
     return format_response(result)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_relations_list(evidence: str) -> str:
     """Get the list of sub-evidences (relations) available for an evidence.
 
@@ -1976,7 +1976,7 @@ def evidence_get_relations_list(evidence: str) -> str:
     return format_response(result)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_sum(
     evidence: str,
     filter_expr: Optional[str] = None,
@@ -1999,7 +1999,7 @@ def evidence_get_sum(
     return format_response(result)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_record_changes(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Get the change history (Prehled zmen zaznamu) of a single record.
 
@@ -2022,7 +2022,7 @@ def evidence_get_record_changes(evidence: str, id: Optional[str] = None, kod: Op
 
 
 # LABELS (stitky)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_labels(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Get all labels (stitky) currently assigned to a record.
 
@@ -2049,7 +2049,7 @@ def evidence_get_labels(evidence: str, id: Optional[str] = None, kod: Optional[s
     return format_response(labels)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_set_label(evidence: str, label: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Add a label to a record, keeping its existing labels.
 
@@ -2078,7 +2078,7 @@ def evidence_set_label(evidence: str, label: str, id: Optional[str] = None, kod:
     return format_response({"success": client.last_response_code == 201})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_unset_label(
     evidence: str,
     labels_to_remove: List[str],
@@ -2118,7 +2118,7 @@ def evidence_unset_label(
     return format_response({"success": client.last_response_code == 201})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def evidence_unset_labels(evidence: str, id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Remove all labels from a record.
 
@@ -2147,7 +2147,7 @@ def evidence_unset_labels(evidence: str, id: Optional[str] = None, kod: Optional
 
 
 # CHANGES API (company-wide incremental sync)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def changes_enable() -> str:
     """Enable change tracking for the current company (Changes API).
 
@@ -2161,7 +2161,7 @@ def changes_enable() -> str:
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def changes_disable() -> str:
     """Disable change tracking for the current company (Changes API).
 
@@ -2175,7 +2175,7 @@ def changes_disable() -> str:
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def changes_status() -> str:
     """Check whether change tracking is currently enabled for the current company.
 
@@ -2188,7 +2188,7 @@ def changes_status() -> str:
     return format_response({"enabled": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def changes_get(
     start: Optional[int] = None,
     limit: Optional[int] = None,
@@ -2223,7 +2223,7 @@ def changes_get(
 
 
 # ISSUED INVOICE BUSINESS LOGIC (FakturaVydana)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def invoice_issued_match_payment(
     payment_id: str,
     id: Optional[str] = None,
@@ -2263,7 +2263,7 @@ def invoice_issued_match_payment(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def invoice_issued_cash_payment(
     value: float,
     id: Optional[str] = None,
@@ -2297,7 +2297,7 @@ def invoice_issued_cash_payment(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def invoice_issued_deduct_advance(
     advance_invoice_id: str,
     id: Optional[str] = None,
@@ -2332,7 +2332,7 @@ def invoice_issued_deduct_advance(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def invoice_issued_deduct_zdd(
     zdd_invoice_id: str,
     id: Optional[str] = None,
@@ -2367,7 +2367,7 @@ def invoice_issued_deduct_zdd(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True})
 def invoice_issued_link_zdd(
     income_id: str,
     id: Optional[str] = None,
@@ -2401,7 +2401,7 @@ def invoice_issued_link_zdd(
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def invoice_issued_unlink_zdd(id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Remove an advance tax document (ZDD) bonding from an issued invoice (Vazby ZDD).
 
@@ -2425,7 +2425,7 @@ def invoice_issued_unlink_zdd(id: Optional[str] = None, kod: Optional[str] = Non
     return format_response({"success": result})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False})
 def invoice_issued_overdue_days(due_date: str) -> str:
     """Get the number of days an invoice is overdue by, given its due date.
     Pure date arithmetic - does not contact AbraFlexi.
@@ -2440,7 +2440,7 @@ def invoice_issued_overdue_days(due_date: str) -> str:
     return format_response({"overdue_days": days})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def invoice_issued_get_email(id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Get the best recipient email address for an issued invoice.
 
@@ -2460,7 +2460,7 @@ def invoice_issued_get_email(id: Optional[str] = None, kod: Optional[str] = None
     return format_response({"email": invoice.get_email()})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def invoice_issued_get_recipients(
     id: Optional[str] = None,
     kod: Optional[str] = None,
@@ -2486,7 +2486,7 @@ def invoice_issued_get_recipients(
 
 
 # CONTACT CONVENIENCE LOOKUPS (Adresar)
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def contact_get_notification_email(
     id: Optional[str] = None,
     kod: Optional[str] = None,
@@ -2512,7 +2512,7 @@ def contact_get_notification_email(
     return format_response({"email": contact.get_notification_email_address(purpose)})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def contact_get_cell_phone(
     id: Optional[str] = None,
     kod: Optional[str] = None,
@@ -2537,7 +2537,7 @@ def contact_get_cell_phone(
     return format_response({"cell_phone": contact.get_cell_phone_number(purpose)})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def contact_get_any_phone(
     id: Optional[str] = None,
     kod: Optional[str] = None,
@@ -2562,7 +2562,7 @@ def contact_get_any_phone(
     return format_response({"phone": contact.get_any_phone_number(purpose)})
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
 def contact_get_bank_accounts(id: Optional[str] = None, kod: Optional[str] = None) -> str:
     """Get the bank account(s) registered for a contact.
 
@@ -2582,7 +2582,7 @@ def contact_get_bank_accounts(id: Optional[str] = None, kod: Optional[str] = Non
     return format_response(contact.get_bank_account_number())
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False})
 def abraflexi_client_methods(client_class: Optional[str] = None, include_signatures: bool = True) -> str:
     """List public python-abraflexi methods available via bridge calls.
 
@@ -2629,7 +2629,7 @@ def abraflexi_client_methods(client_class: Optional[str] = None, include_signatu
     return format_response(result)
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False, "openWorldHint": True})
 def abraflexi_client_call(
     client_class: str,
     method: str,
@@ -2694,7 +2694,7 @@ def abraflexi_client_call(
     })
 
 
-@mcp.tool()
+@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False})
 def evidence_list() -> str:
     """List all available AbraFlexi evidences.
     
