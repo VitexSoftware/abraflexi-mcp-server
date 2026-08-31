@@ -1696,7 +1696,7 @@ def evidence_get_attachment(
     return format_response(result)
 
 
-@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def evidence_download_attachment(
     evidence: str,
     attachment_id: str,
@@ -1735,7 +1735,7 @@ def evidence_download_attachment(
     return format_response({"success": True, "path": output_path, "size_bytes": len(content)})
 
 
-@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_attachment_thumbnail(
     evidence: str,
     attachment_id: str,
@@ -1813,7 +1813,7 @@ def evidence_delete_attachment(
 
 
 # REPORTS, QR CODES & USER QUERIES
-@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def evidence_export_report(
     evidence: str,
     output_path: str,
@@ -1864,7 +1864,7 @@ def evidence_export_report(
     return format_response({"success": True, "path": output_path, "size_bytes": len(content)})
 
 
-@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True})
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": True, "idempotentHint": True, "openWorldHint": True})
 def evidence_get_qr_code(
     evidence: str,
     id: Optional[str] = None,
