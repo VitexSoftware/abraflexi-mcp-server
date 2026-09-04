@@ -6,6 +6,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://badge.fury.io/py/abraflexi-mcp-server.svg)](https://badge.fury.io/py/abraflexi-mcp-server)
 ![Packaging: deb](https://img.shields.io/badge/packaging-.deb-red?logo=debian&logoColor=white)
+[![M8ven Score](https://m8ven.ai/badge/mcp/vitexsoftware-abraflexi-mcp-server-jhy0dc)](https://m8ven.ai/mcp/vitexsoftware-abraflexi-mcp-server-jhy0dc)
 
 A comprehensive Model Context Protocol (MCP) server for AbraFlexi integration using FastMCP and python-abraflexi. This server provides complete access to AbraFlexi REST API functionality through MCP-compatible tools.
 
